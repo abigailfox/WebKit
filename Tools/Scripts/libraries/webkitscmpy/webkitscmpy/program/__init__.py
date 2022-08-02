@@ -33,6 +33,7 @@ from .command import Command
 from .commit import Commit
 from .squash import Squash
 from .checkout import Checkout
+from .cherry_pick import CherryPick
 from .credentials import Credentials
 from .find import Find, Info
 from .install_git_lfs import InstallGitLFS
@@ -77,7 +78,7 @@ def main(
 
     subparsers = parser.add_subparsers(help='sub-command help')
     programs = [
-        Blame, Branch, Canonicalize, Checkout,
+        Blame, Branch, Canonicalize, Checkout, CherryPick,
         Clean, Find, Info, Land, Log, Pull,
         PullRequest, Revert, Setup, InstallGitLFS,
         Credentials, Commit, DeletePRBranches, Squash
