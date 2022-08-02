@@ -49,6 +49,10 @@ class CherryPick(Command):
     @classmethod
     def main(cls, args, repository, **kwargs):
         print("I am cherry picking this commit:", args.hash[0])
+        # TODO: how to find commit from hash?
+        target = args.argument[0]
+        match = cls.PR_RE.match(target)
+        print("match: ", match)
 
         if not repository:
             sys.stderr.write('No repository provided\n')
