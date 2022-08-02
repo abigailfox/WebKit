@@ -53,8 +53,10 @@ class CherryPick(Command):
         print("I am cherry picking this commit:", args.hash[0])
         # TODO: how to find commit from hash?
         commits = list(repository.commits(begin=dict(hash=args.hash[0]), end=dict(hash=args.hash[0])))
-        # if commits[0]:
-        #
+        print(commits)
+
+        if commits[0]:
+            repository.cherrypick(commits[0]) # TODO: how do?
 
         if not repository:
             sys.stderr.write('No repository provided\n')
