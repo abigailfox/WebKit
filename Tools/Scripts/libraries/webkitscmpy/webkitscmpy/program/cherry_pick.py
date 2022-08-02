@@ -24,11 +24,13 @@ import re
 import sys
 
 from .command import Command
+from .pull_request import PullRequest
 from webkitscmpy import local, log, remote
 
 
 class CherryPick(Command):
     name = 'cherry-pick'
+    # TODO: better help (lol)
     help = "Given an identifier, revision, hash or pull-request, normalize and checkout that commit." \
            " Pull requests expected in the form 'PR-#'"
 
@@ -50,9 +52,9 @@ class CherryPick(Command):
     def main(cls, args, repository, **kwargs):
         print("I am cherry picking this commit:", args.hash[0])
         # TODO: how to find commit from hash?
-        target = args.argument[0]
-        match = cls.PR_RE.match(target)
-        print("match: ", match)
+        commits = list(repository.commits(begin=dict(hash=args.hash[0]), end=dict(hash=args.hash[0])))
+        # if commits[0]:
+        #
 
         if not repository:
             sys.stderr.write('No repository provided\n')
