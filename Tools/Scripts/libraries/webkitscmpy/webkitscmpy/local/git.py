@@ -885,6 +885,11 @@ class Git(Scm):
             ).hash
         return argument
 
+    # TODO: this may only be for testing
+    # def cherrypick(self, commit):
+    #     git_args = ['cherry-pick', commit]
+    #     return self._run_git(git_args)
+
     def checkout(self, argument):
         self._branch = None
 

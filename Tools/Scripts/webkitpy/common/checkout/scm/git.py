@@ -570,11 +570,6 @@ class Git(SCM, SVNRepository):
         git_args = ['cherry-pick', '-n', commit]
         return self._run_git(git_args)
 
-    # TODO: this may only be for testing
-    def cherrypick(self, commit):
-        git_args = ['cherry-pick', commit]
-        return self._run_git(git_args)
-
     def commit_locally_with_message(self, message):
         self._run_git(['commit', '--all', '-F', '-'], input=message)
 
