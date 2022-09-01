@@ -70,7 +70,7 @@ const double ForceAtForceClick = 2;
         MouseButton button() const { return m_button; }
         unsigned short buttons() const { return m_buttons; }
         int clickCount() const { return m_clickCount; }
-        unsigned modifierFlags() const { return m_modifierFlags; }
+        unsigned modifierFlags() const { return m_modifierFlags; } // #if platform...MAC or WIN change return type to correct NSEvent../WPARAM rename mouseModifierFlags may need else unsigned
         double force() const { return m_force; }
         SyntheticClickType syntheticClickType() const { return m_syntheticClickType; }
         PointerID pointerId() const { return m_pointerId; }
@@ -104,15 +104,18 @@ const double ForceAtForceClick = 2;
         PointerID m_pointerId { mousePointerID };
         String m_pointerType { "mouse"_s };
         int m_clickCount { 0 };
-        unsigned m_modifierFlags { 0 };
+        unsigned m_modifierFlags { 0 }; // m_mouseModifierFlags platform specific type below
         unsigned short m_buttons { 0 };
 #if PLATFORM(MAC)
         int m_eventNumber { 0 };
         int m_menuTypeForEvent { 0 };
+        // m_mouseModifierFlags platform specific type
 #elif PLATFORM(WIN)
         bool m_didActivateWebView { false };
+        // m_mouseModifierFlags platform specific type
 #elif PLATFORM(GTK)
         IsTouch m_isTouchEvent { IsTouch::No };
+        // m_mouseModifierFlags platform specific type
 #endif
     };
 
