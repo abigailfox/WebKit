@@ -27,6 +27,7 @@
 #pragma once
 
 #include <wtf/Forward.h>
+#include <wtf/MachSendRight.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/ThreadSafeRefCounted.h>
 
@@ -35,7 +36,7 @@
 #endif
 
 #if OS(WINDOWS)
-#include <windows.h>
+#include <wtf/win/Win32Handle.h>
 #endif
 
 namespace IPC {
@@ -88,10 +89,6 @@ public:
         IPC::Attachment releaseAttachment() const;
         void adoptAttachment(IPC::Attachment&&);
 #endif
-#if OS(WINDOWS)
-        static void encodeHandle(IPC::Encoder&, HANDLE);
-        static std::optional<HANDLE> decodeHandle(IPC::Decoder&);
-#endif
         void encode(IPC::Encoder&) const;
         static WARN_UNUSED_RETURN bool decode(IPC::Decoder&, Handle&);
     private:
@@ -99,11 +96,11 @@ public:
 #if USE(UNIX_DOMAIN_SOCKETS)
         mutable IPC::Attachment m_attachment;
 #elif OS(DARWIN)
-        mutable mach_port_t m_port { MACH_PORT_NULL };
+        mutable MachSendRight m_handle;
 #elif OS(WINDOWS)
-        mutable HANDLE m_handle;
+        mutable Win32Handle m_handle;
 #endif
-        size_t m_size;
+        size_t m_size { 0 };
     };
 
     // FIXME: Change these factory functions to return Ref<SharedMemory> and crash on failure.
@@ -131,7 +128,7 @@ public:
     }
 
 #if OS(WINDOWS)
-    HANDLE handle() const { return m_handle; }
+    HANDLE handle() const { return m_handle.get(); }
 #endif
 
 #if PLATFORM(COCOA)
@@ -155,9 +152,9 @@ private:
     std::optional<int> m_fileDescriptor;
     bool m_isWrappingMap { false };
 #elif OS(DARWIN)
-    mach_port_t m_port { MACH_PORT_NULL };
+    MachSendRight m_sendRight;
 #elif OS(WINDOWS)
-    HANDLE m_handle;
+    Win32Handle m_handle;
 #endif
 };
 

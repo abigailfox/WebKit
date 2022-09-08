@@ -554,6 +554,7 @@ set(WebCore_NON_SVG_IDL_FILES
     Modules/reporting/ReportBody.idl
     Modules/reporting/ReportingObserver.idl
     Modules/reporting/ReportingObserverCallback.idl
+    Modules/reporting/TestReportBody.idl
 
     Modules/speech/DOMWindow+SpeechSynthesis.idl
     Modules/speech/SpeechRecognitionErrorEvent.idl
@@ -2582,6 +2583,15 @@ list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/XMLNSNames.cpp)
 
 GENERATE_DOM_NAMES(XML ${WEBCORE_DIR}/xml/xmlattrs.in)
 list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/XMLNames.cpp)
+
+GENERATE_DOM_NAME_ENUM(TagName)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/TagName.cpp)
+
+GENERATE_DOM_NAME_ENUM(ElementName)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/ElementName.cpp)
+
+GENERATE_DOM_NAME_ENUM(Namespace)
+list(APPEND WebCore_SOURCES ${WebCore_DERIVED_SOURCES_DIR}/Namespace.cpp)
 
 WEBKIT_COMPUTE_SOURCES(WebCore)
 

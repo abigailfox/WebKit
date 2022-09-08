@@ -45,9 +45,8 @@
 #include <pal/Logging.h>
 #include <wtf/OptionSet.h>
 
-#if ENABLE(LAYOUT_FORMATTING_CONTEXT)
-
 #define ALLOW_FLOATS 0
+#define ALLOW_RTL_FLOATS 0
 
 #ifndef NDEBUG
 #define SET_REASON_AND_RETURN_IF_NEEDED(reason, reasons, includeReasons) { \
@@ -366,8 +365,17 @@ static OptionSet<AvoidanceReason> canUseForChild(const RenderObject& child, Incl
         return reasons;
 
     auto isSupportedFloatingOrPositioned = [&] (auto& renderer) {
+        if (renderer.style().styleType() == PseudoId::FirstLetter) {
+            // Initial letter implementation uses a specialized float behavior internally.
+            auto& style = renderer.style();
+            if (renderer.isFloating() && (!style.initialLetter().isEmpty() || style.initialLetterDrop() || style.initialLetterHeight()))
+                return false;
+        }
 #if !ALLOW_FLOATS
         if (renderer.isFloating())
+            return false;
+#elif !ALLOW_RTL_FLOATS
+        if (!renderer.parent()->style().isLeftToRightDirection())
             return false;
 #endif
         if (renderer.isOutOfFlowPositioned()) {
@@ -613,4 +621,3 @@ bool canUseForFlexLayout(const RenderFlexibleBox& flexBox)
 }
 }
 
-#endif

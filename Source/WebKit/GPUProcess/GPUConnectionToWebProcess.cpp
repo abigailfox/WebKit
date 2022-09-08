@@ -249,7 +249,7 @@ GPUConnectionToWebProcess::GPUConnectionToWebProcess(GPUProcess& gpuProcess, Web
     , m_sampleBufferDisplayLayerManager(RemoteSampleBufferDisplayLayerManager::create(*this))
 #endif
 #if ENABLE(MEDIA_STREAM)
-    , m_captureOrigin(SecurityOrigin::createUnique())
+    , m_captureOrigin(SecurityOrigin::createOpaque())
 #endif
 #if ENABLE(VIDEO)
     , m_videoFrameObjectHeap(RemoteVideoFrameObjectHeap::create(m_connection.get()))
@@ -710,6 +710,7 @@ void GPUConnectionToWebProcess::setMediaOverridesForTesting(MediaOverridesForTes
 {
 #if ENABLE(VP9) && PLATFORM(COCOA)
     VP9TestingOverrides::singleton().setHardwareDecoderDisabled(WTFMove(overrides.vp9HardwareDecoderDisabled));
+    VP9TestingOverrides::singleton().setVP9DecoderDisabled(WTFMove(overrides.vp9DecoderDisabled));
     VP9TestingOverrides::singleton().setVP9ScreenSizeAndScale(WTFMove(overrides.vp9ScreenSizeAndScale));
 #endif
 

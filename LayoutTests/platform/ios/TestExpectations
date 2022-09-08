@@ -3738,3 +3738,13 @@ webkit.org/b/244501 [ Debug ] webgl/2.0.y/conformance2/state/gl-object-get-calls
 
 webkit.org/b/244549 imported/w3c/web-platform-tests/html/semantics/scripting-1/the-script-element/module/dynamic-import/blob-url-workers.window.html [ Pass Failure ]
 
+webkit.org/b/244619 editing/selection/ios/tap-to-set-selection-in-editable-web-view.html [ Pass Timeout ]
+
+webkit.org/b/244740 http/wpt/cross-origin-opener-policy/non-secure-to-secure-context-navigation.https.html [ Pass Failure ]
+
+webkit.org/b/244851 [ Debug ] platform/ios/mediastream/video-muted-in-background-tab.html [ Skip ]
+
+# These tests have similar harness errors and timeouts. See webkit.org/b/244900
+[ Debug ] imported/w3c/web-platform-tests/dom/nodes/NodeList-static-length-getter-tampered-indexOf-1.html [ Pass Timeout Failure ]
+[ Debug ] imported/w3c/web-platform-tests/dom/nodes/NodeList-static-length-getter-tampered-indexOf-2.html [ Pass Timeout Failure ]
+[ Debug ] imported/w3c/web-platform-tests/dom/nodes/NodeList-static-length-getter-tampered-indexOf-3.html [ Pass Timeout Failure ]

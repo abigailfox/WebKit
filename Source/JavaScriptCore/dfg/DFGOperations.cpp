@@ -1573,46 +1573,6 @@ JSC_DEFINE_JIT_OPERATION(operationCallNumberConstructor, EncodedJSValue, (JSGlob
     return JSValue::encode(JSBigInt::toNumber(numeric));
 }
 
-JSC_DEFINE_JIT_OPERATION(operationGetByValWithThis, EncodedJSValue, (JSGlobalObject* globalObject, EncodedJSValue encodedBase, EncodedJSValue encodedThis, EncodedJSValue encodedSubscript))
-{
-    VM& vm = globalObject->vm();
-    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
-    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
-    auto scope = DECLARE_THROW_SCOPE(vm);
-
-    JSValue baseValue = JSValue::decode(encodedBase);
-    JSValue thisVal = JSValue::decode(encodedThis);
-    JSValue subscript = JSValue::decode(encodedSubscript);
-
-    if (LIKELY(baseValue.isCell() && subscript.isString())) {
-        Structure& structure = *baseValue.asCell()->structure();
-        if (JSCell::canUseFastGetOwnProperty(structure)) {
-            auto existingAtomString = asString(subscript)->toExistingAtomString(globalObject);
-            RETURN_IF_EXCEPTION(scope, encodedJSValue());
-            if (!existingAtomString.isNull()) {
-                if (JSValue result = baseValue.asCell()->fastGetOwnProperty(vm, structure, existingAtomString.impl()))
-                    return JSValue::encode(result);
-            }
-        }
-    }
-    
-    PropertySlot slot(thisVal, PropertySlot::PropertySlot::InternalMethodType::Get);
-    if (std::optional<uint32_t> index = subscript.tryGetAsUint32Index()) {
-        uint32_t i = *index;
-        if (isJSString(baseValue) && asString(baseValue)->canGetIndex(i))
-            return JSValue::encode(asString(baseValue)->getIndex(globalObject, i));
-        
-        RELEASE_AND_RETURN(scope, JSValue::encode(baseValue.get(globalObject, i, slot)));
-    }
-
-    baseValue.requireObjectCoercible(globalObject);
-    RETURN_IF_EXCEPTION(scope, encodedJSValue());
-
-    auto property = subscript.toPropertyKey(globalObject);
-    RETURN_IF_EXCEPTION(scope, encodedJSValue());
-    RELEASE_AND_RETURN(scope, JSValue::encode(baseValue.get(globalObject, property, slot)));
-}
-
 JSC_DEFINE_JIT_OPERATION(operationPutByIdWithThisStrict, void, (JSGlobalObject* globalObject, EncodedJSValue encodedBase, EncodedJSValue encodedThis, EncodedJSValue encodedValue, uintptr_t rawCacheableIdentifier))
 {
     VM& vm = globalObject->vm();
@@ -2544,6 +2504,110 @@ JSC_DEFINE_JIT_OPERATION(operationStringValueOf, JSString*, (JSGlobalObject* glo
 
     throwVMTypeError(globalObject, scope);
     return nullptr;
+}
+
+
+enum class StringReplaceSubstitutions : bool { Yes, No };
+template<StringReplaceSubstitutions substitutions>
+static ALWAYS_INLINE JSString* stringReplaceStringString(JSGlobalObject* globalObject, JSString* stringCell, String string, String search, String replacement)
+{
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    size_t matchStart = string.find(search);
+    if (matchStart == notFound)
+        return stringCell;
+
+    size_t searchLength = search.length();
+    size_t matchEnd = matchStart + searchLength;
+    if constexpr (substitutions == StringReplaceSubstitutions::Yes) {
+        size_t dollarSignPosition = replacement.find('$');
+        if (dollarSignPosition != WTF::notFound) {
+            StringBuilder builder(StringBuilder::OverflowHandler::RecordOverflow);
+            int ovector[2] = { static_cast<int>(matchStart),  static_cast<int>(matchEnd) };
+            substituteBackreferencesSlow(builder, replacement, string, ovector, nullptr, dollarSignPosition);
+            if (UNLIKELY(builder.hasOverflowed())) {
+                throwOutOfMemoryError(globalObject, scope);
+                return nullptr;
+            }
+            replacement = builder.toString();
+        }
+    }
+
+    auto result = tryMakeString(StringView(string).substring(0, matchStart), replacement, StringView(string).substring(matchEnd, string.length() - matchEnd));
+    if (UNLIKELY(!result)) {
+        throwOutOfMemoryError(globalObject, scope);
+        return nullptr;
+    }
+
+    return jsString(vm, WTFMove(result));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringReplaceStringString, JSString*, (JSGlobalObject* globalObject, JSString* stringCell, JSString* searchCell, JSString* replacementCell))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    String string = stringCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    String search = searchCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    String replacement = replacementCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    RELEASE_AND_RETURN(scope, stringReplaceStringString<StringReplaceSubstitutions::Yes>(globalObject, stringCell, WTFMove(string), WTFMove(search), WTFMove(replacement)));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringReplaceStringStringWithoutSubstitution, JSString*, (JSGlobalObject* globalObject, JSString* stringCell, JSString* searchCell, JSString* replacementCell))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    String string = stringCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    String search = searchCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    String replacement = replacementCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    RELEASE_AND_RETURN(scope, stringReplaceStringString<StringReplaceSubstitutions::No>(globalObject, stringCell, WTFMove(string), WTFMove(search), WTFMove(replacement)));
+}
+
+JSC_DEFINE_JIT_OPERATION(operationStringReplaceStringEmptyString, JSString*, (JSGlobalObject* globalObject, JSString* stringCell, JSString* searchCell))
+{
+    VM& vm = globalObject->vm();
+    CallFrame* callFrame = DECLARE_CALL_FRAME(vm);
+    JITOperationPrologueCallFrameTracer tracer(vm, callFrame);
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    String string = stringCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    String search = searchCell->value(globalObject);
+    RETURN_IF_EXCEPTION(scope, nullptr);
+
+    size_t matchStart = string.find(search);
+    if (matchStart == notFound)
+        return stringCell;
+
+    // Because replacement string is empty, it cannot include backreferences.
+    size_t searchLength = search.length();
+    size_t matchEnd = matchStart + searchLength;
+    auto result = tryMakeString(StringView(string).substring(0, matchStart), StringView(string).substring(matchEnd, string.length() - matchEnd));
+    if (UNLIKELY(!result)) {
+        throwOutOfMemoryError(globalObject, scope);
+        return nullptr;
+    }
+
+    return jsString(vm, WTFMove(result));
 }
 
 JSC_DEFINE_JIT_OPERATION(operationStringSubstr, JSCell*, (JSGlobalObject* globalObject, JSCell* cell, int32_t from, int32_t span))

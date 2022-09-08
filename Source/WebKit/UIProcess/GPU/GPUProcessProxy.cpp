@@ -350,6 +350,11 @@ void GPUProcessProxy::setMockCaptureDevicesInterrupted(bool isCameraInterrupted,
 {
     send(Messages::GPUProcess::SetMockCaptureDevicesInterrupted { isCameraInterrupted, isMicrophoneInterrupted }, 0);
 }
+
+void GPUProcessProxy::triggerMockMicrophoneConfigurationChange()
+{
+    send(Messages::GPUProcess::TriggerMockMicrophoneConfigurationChange { }, 0);
+}
 #endif // ENABLE(MEDIA_STREAM)
 
 #if HAVE(SC_CONTENT_SHARING_SESSION)
@@ -414,7 +419,7 @@ void GPUProcessProxy::gpuProcessExited(ProcessTerminationReason reason)
     case ProcessTerminationReason::IdleExit:
     case ProcessTerminationReason::Unresponsive:
     case ProcessTerminationReason::Crash:
-        RELEASE_LOG_ERROR(Process, "%p - GPUProcessProxy::gpuProcessExited: reason=%{public}s", this, processTerminationReasonToString(reason));
+        RELEASE_LOG_ERROR(Process, "%p - GPUProcessProxy::gpuProcessExited: reason=%" PUBLIC_LOG_STRING, this, processTerminationReasonToString(reason));
         break;
     case ProcessTerminationReason::ExceededProcessCountLimit:
     case ProcessTerminationReason::NavigationSwap:
@@ -472,7 +477,7 @@ void GPUProcessProxy::didFinishLaunching(ProcessLauncher* launcher, IPC::Connect
 {
     AuxiliaryProcessProxy::didFinishLaunching(launcher, connectionIdentifier);
 
-    if (!IPC::Connection::identifierIsValid(connectionIdentifier)) {
+    if (!connectionIdentifier) {
         gpuProcessExited(ProcessTerminationReason::Crash);
         return;
     }
@@ -678,6 +683,16 @@ void GPUProcessProxy::requestBitmapImageForCurrentTime(ProcessIdentifier process
 {
     sendWithAsyncReply(Messages::GPUProcess::RequestBitmapImageForCurrentTime(processIdentifier, playerIdentifier), WTFMove(completion));
 }
+
+#if ENABLE(MEDIA_STREAM) && PLATFORM(IOS_FAMILY)
+void GPUProcessProxy::statusBarWasTapped(CompletionHandler<void()>&& completionHandler)
+{
+    if (auto* page = WebProcessProxy::audioCapturingWebPage())
+        page->statusBarWasTapped();
+    // Find the web page capturing audio and put focus on it.
+    completionHandler();
+}
+#endif
 
 } // namespace WebKit
 

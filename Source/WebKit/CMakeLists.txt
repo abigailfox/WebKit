@@ -321,6 +321,7 @@ set(WebKit_MESSAGES_IN_FILES
     WebProcess/WebCoreSupport/RemoteWebLockRegistry
     WebProcess/WebCoreSupport/WebBroadcastChannelRegistry
     WebProcess/WebCoreSupport/WebFileSystemStorageConnection
+    WebProcess/WebCoreSupport/WebPermissionController
     WebProcess/WebCoreSupport/WebSpeechRecognitionConnection
 
     WebProcess/WebPage/DrawingArea
@@ -515,9 +516,13 @@ set(WebKit_SERIALIZATION_IN_FILES
 
     Shared/FrameInfoData.serialization.in
     Shared/FrameTreeNodeData.serialization.in
+    Shared/WebCoreArgumentCoders.serialization.in
     Shared/WebsiteDataStoreParameters.serialization.in
 
+    Shared/API/APIGeometry.serialization.in
+
     Shared/WebGPU/WebGPUOrigin3D.serialization.in
+    Shared/WebGPU/WebGPUSupportedFeatures.serialization.in
     Shared/WebGPU/WebGPUValidationError.serialization.in
 )
 
@@ -530,6 +535,7 @@ add_custom_command(
     OUTPUT
         ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializers.h
         ${WebKit_DERIVED_SOURCES_DIR}/GeneratedSerializers.cpp
+        ${WebKit_DERIVED_SOURCES_DIR}/SerializedTypeInfo.cpp
     MAIN_DEPENDENCY ${WEBKIT_DIR}/Scripts/generate-serializers.py
     DEPENDS
         ${WebKit_SERIALIZATION_IN_FILES}

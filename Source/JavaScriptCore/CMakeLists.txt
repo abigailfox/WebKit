@@ -355,6 +355,7 @@ set(JavaScriptCore_BUILTINS_SOURCES
     ${JAVASCRIPTCORE_DIR}/builtins/PromiseConstructor.js
     ${JAVASCRIPTCORE_DIR}/builtins/PromiseOperations.js
     ${JAVASCRIPTCORE_DIR}/builtins/PromisePrototype.js
+    ${JAVASCRIPTCORE_DIR}/builtins/ProxyHelpers.js
     ${JAVASCRIPTCORE_DIR}/builtins/ReflectObject.js
     ${JAVASCRIPTCORE_DIR}/builtins/RegExpPrototype.js
     ${JAVASCRIPTCORE_DIR}/builtins/RegExpStringIteratorPrototype.js
@@ -1435,7 +1436,11 @@ WEBKIT_INCLUDE_CONFIG_FILES_IF_EXISTS()
 if (COMPILER_IS_GCC_OR_CLANG)
     # Avoid using fused multiply-add instructions since this could give different results
     # for e.g. parseInt depending on the platform and compilation flags.
-    WEBKIT_ADD_TARGET_CXX_FLAGS(JavaScriptCore -ffp-contract=off -fno-slp-vectorize)
+    if (WTF_CPU_LOONGARCH64)
+        WEBKIT_ADD_TARGET_CXX_FLAGS(JavaScriptCore -ffp-contract=off)
+    else ()
+        WEBKIT_ADD_TARGET_CXX_FLAGS(JavaScriptCore -ffp-contract=off -fno-slp-vectorize)
+    endif ()
 
     # On MIPS we have to explicitly disable madd4, since some versions of gcc still generate
     # such instructions despite -ffp-contract=off

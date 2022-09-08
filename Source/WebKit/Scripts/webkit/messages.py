@@ -907,7 +907,6 @@ def headers_for_type(type):
         'WebKit::SelectionTouch': ['"GestureTypes.h"'],
         'WebKit::TapIdentifier': ['"IdentifierTypes.h"'],
         'WebKit::TextCheckerRequestID': ['"IdentifierTypes.h"'],
-        'WebKit::WebEvent::Modifier': ['"WebEvent.h"'],
         'WebKit::WebGPU::BindGroupDescriptor': ['"WebGPUBindGroupDescriptor.h"'],
         'WebKit::WebGPU::BindGroupEntry': ['"WebGPUBindGroupEntry.h"'],
         'WebKit::WebGPU::BindGroupLayoutDescriptor': ['"WebGPUBindGroupLayoutDescriptor.h"'],
@@ -1070,7 +1069,6 @@ def generate_message_handler(receiver):
         '"%s"' % messages_header_filename(receiver): [None],
         '"HandleMessage.h"': [None],
         '"Decoder.h"': [None],
-        '"GeneratedSerializers.h"': [None],
     }
 
     collect_header_conditions_for_receiver(receiver, header_conditions)

@@ -69,6 +69,7 @@
 #endif
 
 #if PLATFORM(COCOA)
+#include <WebCore/CoreAudioSharedUnit.h>
 #include <WebCore/VP9UtilitiesCocoa.h>
 #endif
 
@@ -118,12 +119,10 @@ void GPUProcess::didReceiveMessage(IPC::Connection& connection, IPC::Decoder& de
 
 static IPC::Connection::Identifier asConnectionIdentifier(IPC::Attachment&& connectionHandle)
 {
-#if USE(UNIX_DOMAIN_SOCKETS)
+#if USE(UNIX_DOMAIN_SOCKETS) || OS(WINDOWS)
     return IPC::Connection::Identifier { connectionHandle.release().release() };
 #elif OS(DARWIN)
     return IPC::Connection::Identifier { connectionHandle.leakSendRight() };
-#elif OS(WINDOWS)
-    return IPC::Connection::Identifier { connectionHandle.handle() };
 #else
     notImplemented();
     return IPC::Connection::Identifier { };
@@ -138,7 +137,7 @@ void GPUProcess::createGPUConnectionToWebProcess(WebCore::ProcessIdentifier iden
     auto connectionIdentifier = asConnectionIdentifier(WTFMove(connectionHandle));
     // If sender exited before we received the identifier, the identifier
     // may not be valid.
-    if (!IPC::Connection::identifierIsValid(connectionIdentifier))
+    if (!connectionIdentifier)
         return;
 
     auto newConnection = GPUConnectionToWebProcess::create(*this, identifier, sessionID, WTFMove(connectionIdentifier), WTFMove(parameters));
@@ -253,6 +252,12 @@ void GPUProcess::initializeGPUProcess(GPUProcessCreationParameters&& parameters)
     setMockCaptureDevicesEnabled(parameters.useMockCaptureDevices);
 #if PLATFORM(MAC)
     SandboxExtension::consumePermanently(parameters.microphoneSandboxExtensionHandle);
+#endif
+#if PLATFORM(IOS_FAMILY)
+    CoreAudioSharedUnit::unit().setStatusBarWasTappedCallback([this](auto completionHandler) {
+        parentProcessConnection()->sendWithAsyncReply(Messages::GPUProcessProxy::StatusBarWasTapped(), [] { }, 0);
+        completionHandler();
+    });
 #endif
 #endif // ENABLE(MEDIA_STREAM)
 
@@ -427,6 +432,11 @@ void GPUProcess::resetMockMediaDevices()
 void GPUProcess::setMockCaptureDevicesInterrupted(bool isCameraInterrupted, bool isMicrophoneInterrupted)
 {
     MockRealtimeMediaSourceCenter::setMockCaptureDevicesInterrupted(isCameraInterrupted, isMicrophoneInterrupted);
+}
+
+void GPUProcess::triggerMockMicrophoneConfigurationChange()
+{
+    MockRealtimeMediaSourceCenter::singleton().triggerMockMicrophoneConfigurationChange();
 }
 #endif // ENABLE(MEDIA_STREAM)
 

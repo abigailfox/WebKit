@@ -1,6 +1,6 @@
 function assert(x) { if (!x) throw new Error(`Bad assertion: ${x}!`); }
 
-const runs = 1e6;
+const runs = 1e5;
 const length = 100;
 
 var alwaysSlowPutContiguous = $vm.createAlwaysSlowPutContiguousObjectWithOverrides(length);

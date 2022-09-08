@@ -28,6 +28,7 @@
  */
 
 #include "config.h"
+#include "JSCast.h"
 #include "JSGlobalObject.h"
 
 #include "AggregateError.h"
@@ -278,6 +279,7 @@ FOR_EACH_LAZY_BUILTIN_TYPE(CHECK_FEATURE_FLAG_TYPE)
 
 static JSC_DECLARE_HOST_FUNCTION(makeBoundFunction);
 static JSC_DECLARE_HOST_FUNCTION(hasOwnLengthProperty);
+static JSC_DECLARE_HOST_FUNCTION(globalFuncHandleProxyGetTrapResult);
 static JSC_DECLARE_HOST_FUNCTION(createPrivateSymbol);
 static JSC_DECLARE_HOST_FUNCTION(jsonParse);
 static JSC_DECLARE_HOST_FUNCTION(jsonStringify);
@@ -363,6 +365,36 @@ JSC_DEFINE_HOST_FUNCTION(hasOwnLengthProperty, (JSGlobalObject* globalObject, Ca
         return JSValue::encode(jsBoolean(true));
     }
     RELEASE_AND_RETURN(scope, JSValue::encode(jsBoolean(target->hasOwnProperty(globalObject, vm.propertyNames->length))));
+}
+
+JSC_DEFINE_HOST_FUNCTION(globalFuncHandleProxyGetTrapResult, (JSGlobalObject* globalObject, CallFrame* callFrame))
+{
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
+    JSValue trapResult = callFrame->uncheckedArgument(0);
+
+    JSObject* target = asObject(callFrame->uncheckedArgument(1));
+
+    Identifier propertyName = callFrame->uncheckedArgument(2).toPropertyKey(globalObject);
+    RETURN_IF_EXCEPTION(scope, { });
+
+    PropertyDescriptor descriptor;
+    bool result = target->getOwnPropertyDescriptor(globalObject, propertyName.impl(), descriptor);
+    EXCEPTION_ASSERT(!scope.exception() || !result);
+    if (result) {
+        if (descriptor.isDataDescriptor() && !descriptor.configurable() && !descriptor.writable()) {
+            bool isSame = sameValue(globalObject, descriptor.value(), trapResult);
+            RETURN_IF_EXCEPTION(scope, { });
+            if (!isSame)
+                return throwVMTypeError(globalObject, scope, "Proxy handler's 'get' result of a non-configurable and non-writable property should be the same value as the target's property"_s);
+        } else if (descriptor.isAccessorDescriptor() && !descriptor.configurable() && descriptor.getter().isUndefined()) {
+            if (!trapResult.isUndefined())
+                return throwVMTypeError(globalObject, scope, "Proxy handler's 'get' result of a non-configurable accessor property without a getter should be undefined"_s);
+        }
+    }
+
+    RELEASE_AND_RETURN(scope, JSValue::encode(jsUndefined()));
 }
 
 // FIXME: use a bytecode or intrinsic for creating a private symbol.
@@ -691,14 +723,14 @@ static ObjectPropertyCondition setupAdaptiveWatchpoint(JSGlobalObject* globalObj
     VM& vm = globalObject->vm();
     DeferTerminationForAWhile deferScope(vm);
     auto catchScope = DECLARE_CATCH_SCOPE(vm);
-    PropertySlot slot(base, PropertySlot::InternalMethodType::Get);
+    PropertySlot slot(base, PropertySlot::InternalMethodType::VMInquiry, &vm);
     bool result = base->getOwnPropertySlot(base, globalObject, ident, slot);
     ASSERT_UNUSED(result, result);
     catchScope.assertNoException();
-    RELEASE_ASSERT(slot.isCacheableValue());
-    JSValue functionValue = slot.getValue(globalObject, ident);
+    RELEASE_ASSERT(slot.isCacheableValue() || slot.isCacheableGetter());
+    JSValue functionValue = slot.isCacheableValue() ? slot.getValue(globalObject, ident) : slot.getterSetter();
     catchScope.assertNoException();
-    ASSERT(jsDynamicCast<JSFunction*>(functionValue));
+    ASSERT(jsDynamicCast<JSFunction*>(functionValue) || jsDynamicCast<GetterSetter*>(functionValue));
 
     ObjectPropertyCondition condition = generateConditionForSelfEquivalence(vm, nullptr, base, ident.impl());
     RELEASE_ASSERT(condition.requiredValue() == functionValue);
@@ -802,7 +834,7 @@ void JSGlobalObject::init(VM& vm)
     m_functionPrototype->addFunctionProperties(vm, this, &callFunction, &applyFunction, &hasInstanceSymbolFunction);
     m_objectProtoToStringFunction.initLater(
         [] (const Initializer<JSFunction>& init) {
-            init.set(JSFunction::create(init.vm, init.owner, 0, init.vm.propertyNames->toString.string(), objectProtoFuncToString, ImplementationVisibility::Public));
+            init.set(JSFunction::create(init.vm, init.owner, 0, init.vm.propertyNames->toString.string(), objectProtoFuncToString, ImplementationVisibility::Public, ObjectToStringIntrinsic));
         });
     m_arrayProtoToStringFunction.initLater(
         [] (const Initializer<JSFunction>& init) {
@@ -1571,6 +1603,11 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
             init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 1, String(), hasOwnLengthProperty, ImplementationVisibility::Private));
         });
 
+    // Proxy prototype helpers.
+    m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::handleProxyGetTrapResult)].initLater([] (const Initializer<JSCell>& init) {
+            init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 3, String(), globalFuncHandleProxyGetTrapResult, ImplementationVisibility::Private));
+        });
+
     m_linkTimeConstants[static_cast<unsigned>(LinkTimeConstant::dateTimeFormat)].initLater([] (const Initializer<JSCell>& init) {
             init.set(JSFunction::create(init.vm, jsCast<JSGlobalObject*>(init.owner), 0, String(), globalFuncDateTimeFormat, ImplementationVisibility::Private));
         });
@@ -1705,6 +1742,37 @@ capitalName ## Constructor* lowerName ## Constructor = featureFlag ? capitalName
         ObjectPropertyCondition condition = setupAdaptiveWatchpoint(this, m_stringPrototype.get(), vm.propertyNames->iteratorSymbol);
         m_stringPrototypeSymbolIteratorWatchpoint = makeUnique<ObjectPropertyChangeAdaptiveWatchpoint<InlineWatchpointSet>>(this, condition, m_stringIteratorProtocolWatchpointSet);
         m_stringPrototypeSymbolIteratorWatchpoint->install(vm);
+    }
+    {
+        m_regExpPrototypeExecWatchpoint = makeUnique<ObjectPropertyChangeAdaptiveWatchpoint<InlineWatchpointSet>>(this, setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->exec), m_regExpPrimordialPropertiesWatchpointSet);
+        m_regExpPrototypeExecWatchpoint->install(vm);
+        m_regExpPrototypeGlobalWatchpoint = makeUnique<ObjectPropertyChangeAdaptiveWatchpoint<InlineWatchpointSet>>(this, setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->global), m_regExpPrimordialPropertiesWatchpointSet);
+        m_regExpPrototypeGlobalWatchpoint->install(vm);
+        m_regExpPrototypeUnicodeWatchpoint = makeUnique<ObjectPropertyChangeAdaptiveWatchpoint<InlineWatchpointSet>>(this, setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->unicode), m_regExpPrimordialPropertiesWatchpointSet);
+        m_regExpPrototypeUnicodeWatchpoint->install(vm);
+        m_regExpPrototypeSymbolReplaceWatchpoint = makeUnique<ObjectPropertyChangeAdaptiveWatchpoint<InlineWatchpointSet>>(this, setupAdaptiveWatchpoint(this, m_regExpPrototype.get(), vm.propertyNames->replaceSymbol), m_regExpPrimordialPropertiesWatchpointSet);
+        m_regExpPrototypeSymbolReplaceWatchpoint->install(vm);
+    }
+    {
+        auto absenceCondition = [&](JSGlobalObject* globalObject, JSObject* base, PropertyName propertyName, JSObject* prototype) {
+            PropertySlot slot(base, PropertySlot::InternalMethodType::VMInquiry, &vm);
+            bool result = base->getOwnPropertySlot(base, globalObject, propertyName, slot);
+            RELEASE_ASSERT(!result);
+            catchScope.assertNoException();
+            RELEASE_ASSERT(slot.isUnset());
+            RELEASE_ASSERT(base->getPrototypeDirect() == (prototype ? JSValue(prototype) : jsNull()));
+            return ObjectPropertyCondition::absence(vm, globalObject, base, propertyName.uid(), prototype);
+        };
+        auto absenceStringPrototype = absenceCondition(this, m_stringPrototype.get(), vm.propertyNames->replaceSymbol, objectPrototype());
+        auto absenceObjectPrototype = absenceCondition(this, m_objectPrototype.get(), vm.propertyNames->replaceSymbol, nullptr);
+
+        RELEASE_ASSERT(absenceStringPrototype.isWatchable(PropertyCondition::EnsureWatchability));
+        m_stringPrototypeSymbolReplaceMissWatchpoint = makeUnique<ObjectAdaptiveStructureWatchpoint>(this, absenceStringPrototype, m_stringSymbolReplaceWatchpointSet);
+        m_stringPrototypeSymbolReplaceMissWatchpoint->install(vm);
+
+        RELEASE_ASSERT(absenceObjectPrototype.isWatchable(PropertyCondition::EnsureWatchability));
+        m_objectPrototypeSymbolReplaceMissWatchpoint = makeUnique<ObjectAdaptiveStructureWatchpoint>(this, absenceObjectPrototype, m_stringSymbolReplaceWatchpointSet);
+        m_objectPrototypeSymbolReplaceMissWatchpoint->install(vm);
     }
 
     // Unfortunately, the prototype objects of the builtin objects can be touched from concurrent compilers. So eagerly initialize them only if we use JIT.

@@ -32,7 +32,6 @@
 #include "FindController.h"
 #include "FormDataReference.h"
 #include "FrameInfoData.h"
-#include "GeneratedSerializers.h"
 #include "IPCTestingAPI.h"
 #include "InjectedBundle.h"
 #include "InjectedBundleDOMWindowExtension.h"
@@ -735,7 +734,7 @@ void WebFrameLoaderClient::dispatchDidReachLayoutMilestone(OptionSet<WebCore::La
     addIfSet(DidRenderSignificantAmountOfText, "DidRenderSignificantAmountOfText"_s);
     addIfSet(DidFirstMeaningfulPaint, "DidFirstMeaningfulPaint"_s);
 
-    WEBFRAMELOADERCLIENT_RELEASE_LOG(Layout, "dispatchDidReachLayoutMilestone: dispatching DidReachLayoutMilestone (milestones=%{public}s)", builder.toString().utf8().data());
+    WEBFRAMELOADERCLIENT_RELEASE_LOG(Layout, "dispatchDidReachLayoutMilestone: dispatching DidReachLayoutMilestone (milestones=%" PUBLIC_LOG_STRING ")", builder.toString().utf8().data());
 #endif
 
     // Send this after DidFirstLayout-specific calls since some clients expect to get those messages first.

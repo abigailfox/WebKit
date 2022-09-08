@@ -3036,8 +3036,8 @@ void FrameLoader::addHTTPOriginIfNeeded(ResourceRequest& request, const String& 
 
     if (origin.isEmpty()) {
         // If we don't know what origin header to attach, we attach the value
-        // for an empty origin.
-        request.setHTTPOrigin(SecurityOrigin::createUnique()->toString());
+        // for an opaque origin.
+        request.setHTTPOrigin(SecurityOrigin::createOpaque()->toString());
         return;
     }
 
@@ -3482,7 +3482,11 @@ void FrameLoader::executeJavaScriptURL(const URL& url, const NavigationAction& a
 {
     ASSERT(url.protocolIsJavaScript());
 
-    bool isFirstNavigationInFrame = m_stateMachine.isDisplayingInitialEmptyDocument();
+    bool isFirstNavigationInFrame = false;
+    if (!m_stateMachine.committedFirstRealDocumentLoad()) {
+        m_stateMachine.advanceTo(FrameLoaderStateMachine::DisplayingInitialEmptyDocumentPostCommit);
+        isFirstNavigationInFrame = true;
+    }
 
     RefPtr ownerDocument = m_frame.ownerElement() ? &m_frame.ownerElement()->document() : nullptr;
     if (ownerDocument)

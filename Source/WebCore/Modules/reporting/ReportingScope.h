@@ -30,6 +30,7 @@
 #include <wtf/IsoMalloc.h>
 #include <wtf/RefCounted.h>
 #include <wtf/RobinHoodHashMap.h>
+#include <wtf/WeakPtr.h>
 
 namespace WTF {
 class String;
@@ -59,6 +60,8 @@ public:
     void parseReportingEndpoints(const String&, const URL& baseURL);
 
     String endpointURIForToken(const String&) const;
+
+    void generateTestReport(String&& message, String&& group);
 
 private:
     explicit ReportingScope(ScriptExecutionContext&);

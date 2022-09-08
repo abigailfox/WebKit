@@ -1789,9 +1789,12 @@ ArrayStorage* JSObject::ensureArrayStorageSlow(VM& vm)
         ASSERT(!needsSlowPutIndexing());
         return convertDoubleToArrayStorage(vm);
         
-    case ALL_CONTIGUOUS_INDEXING_TYPES:
+    case ALL_FAST_PUT_CONTIGUOUS_INDEXING_TYPES:
         ASSERT(!indexingShouldBeSparse());
         ASSERT(!needsSlowPutIndexing());
+        FALLTHROUGH;
+
+    case NonArrayWithAlwaysSlowPutContiguous:
         return convertContiguousToArrayStorage(vm);
         
     default:
@@ -2965,7 +2968,7 @@ bool JSObject::putByIndexBeyondVectorLengthWithoutAttributes(JSGlobalObject* glo
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(!isCopyOnWrite(indexingMode()));
-    ASSERT((indexingType() & IndexingShapeMask) == indexingShape);
+    ASSERT((indexingType() & IndexingShapeMask) == indexingShape || hasAlwaysSlowPutContiguous(indexingType()));
     ASSERT(!indexingShouldBeSparse());
 
     Butterfly* butterfly = m_butterfly.get();
@@ -4006,7 +4009,7 @@ bool JSObject::needsSlowPutIndexing() const
 
 TransitionKind JSObject::suggestedArrayStorageTransition() const
 {
-    if (needsSlowPutIndexing())
+    if (needsSlowPutIndexing() || hasAlwaysSlowPutContiguous(indexingType()))
         return TransitionKind::AllocateSlowPutArrayStorage;
     
     return TransitionKind::AllocateArrayStorage;

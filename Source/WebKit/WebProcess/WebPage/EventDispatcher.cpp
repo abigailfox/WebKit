@@ -27,7 +27,6 @@
 #include "EventDispatcher.h"
 
 #include "EventDispatcherMessages.h"
-#include "GeneratedSerializers.h"
 #include "MomentumEventDispatcher.h"
 #include "WebEventConversion.h"
 #include "WebPage.h"
@@ -134,8 +133,9 @@ void EventDispatcher::internalWheelEvent(PageIdentifier pageID, const WebWheelEv
         bool useMainThreadForScrolling = processingSteps.contains(WheelEventProcessingSteps::MainThreadForScrolling);
 
 #if !PLATFORM(COCOA)
-        // Deliver continuing scroll gestures directly to the scrolling thread.
-        if (platformWheelEvent.phase() == PlatformWheelEventPhase::Changed && scrollingTree->isUserScrollInProgressAtEventLocation(platformWheelEvent))
+        // Deliver continuing scroll gestures directly to the scrolling thread until the end.
+        if ((platformWheelEvent.phase() == PlatformWheelEventPhase::Changed || platformWheelEvent.phase() == PlatformWheelEventPhase::Ended)
+            && scrollingTree->isUserScrollInProgressAtEventLocation(platformWheelEvent))
             useMainThreadForScrolling = false;
 #endif
 

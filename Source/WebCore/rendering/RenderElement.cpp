@@ -26,6 +26,7 @@
 #include "RenderElement.h"
 
 #include "AXObjectCache.h"
+#include "BorderPainter.h"
 #include "CachedResourceLoader.h"
 #include "ContentData.h"
 #include "CursorList.h"
@@ -1201,6 +1202,14 @@ bool RenderElement::repaintAfterLayoutIfNeeded(const RenderLayerModelObject* rep
     LayoutRect newOutlineBox;
 
     bool fullRepaint = selfNeedsLayout();
+
+    if (!fullRepaint && oldBounds != newBounds && style().hasBorderRadius()) {
+        auto oldRadius = style().getRoundedBorderFor(oldBounds).radii();
+        auto newRadius = style().getRoundedBorderFor(newBounds).radii();
+
+        fullRepaint = oldRadius != newRadius;
+    }
+
     if (!fullRepaint) {
         // This ASSERT fails due to animations. See https://bugs.webkit.org/show_bug.cgi?id=37048
         // ASSERT(!newOutlineBoxRectPtr || *newOutlineBoxRectPtr == outlineBoundsForRepaint(repaintContainer));
@@ -1925,7 +1934,7 @@ void RenderElement::drawLineForBoxSide(GraphicsContext& graphicsContext, const F
     }
     case BorderStyle::Inset:
     case BorderStyle::Outset:
-        calculateBorderStyleColor(borderStyle, side, color);
+        color = BorderPainter::calculateBorderStyleColor(borderStyle, side, color);
         FALLTHROUGH;
     case BorderStyle::Solid: {
         StrokeStyle oldStrokeStyle = graphicsContext.strokeStyle();

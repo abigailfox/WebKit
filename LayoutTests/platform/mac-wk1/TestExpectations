@@ -40,6 +40,8 @@ imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback-during-x
 
 webkit.org/b/235072 imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback-repeating.html [ Skip ]
 
+webkit.org/b/244736 imported/w3c/web-platform-tests/video-rvfc/request-video-frame-callback.html [ Pass Failure ]
+
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End platform-specific directories.
 #//////////////////////////////////////////////////////////////////////////////////////////
@@ -287,6 +289,13 @@ imported/w3c/web-platform-tests/IndexedDB/reading-autoincrement-store-cursors.an
 imported/w3c/web-platform-tests/IndexedDB/reading-autoincrement-store.any.sharedworker.html [ Skip ]
 imported/w3c/web-platform-tests/IndexedDB/storage-buckets.https.any.sharedworker.html [ Skip ]
 
+# Reporting API "generate_test_report" is not supported on WebKitLegacy
+imported/w3c/web-platform-tests/reporting/bufferSize.html [ Skip ]
+imported/w3c/web-platform-tests/reporting/disconnect.html [ Skip ]
+imported/w3c/web-platform-tests/reporting/generateTestReport.html [ Skip ]
+imported/w3c/web-platform-tests/reporting/nestedReport.html [ Skip ]
+imported/w3c/web-platform-tests/reporting/order.html [ Skip ]
+
 http/wpt/mediarecorder [ Skip ]
 imported/w3c/web-platform-tests/mediacapture-record [ Skip ]
 fast/history/page-cache-media-recorder.html [ Skip ]
@@ -302,6 +311,9 @@ fast/speechrecognition/start-recognition-without-devices.html [ Skip ]
 accessibility/datalist.html [ WontFix ]
 fast/forms/datalist [ WontFix ]
 imported/w3c/web-platform-tests/html/semantics/forms/the-datalist-element [ WontFix ]
+
+# Default ARIA for custom elements are not yet enabled
+accessibility/custom-elements/role.html [ Skip ]
 
 # DOM paste access requests are not implemented in WebKit1.
 editing/async-clipboard/clipboard-change-data-while-reading.html [ Skip ]
@@ -375,6 +387,9 @@ imported/w3c/web-platform-tests/beacon/ [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-beacon-allowed.sub.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-beacon-blocked.sub.html [ Skip ]
 imported/w3c/web-platform-tests/content-security-policy/connect-src/connect-src-beacon-redirect-to-blocked.sub.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/beacon.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/opt-in/beacon.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/beacon.https.html [ Skip ]
 http/tests/security/contentSecurityPolicy/connect-src-beacon-allowed.html [ Skip ]
 http/tests/security/contentSecurityPolicy/connect-src-beacon-blocked.html [ Skip ]
 http/tests/security/contentSecurityPolicy/report-only-connect-src-beacon-redirect-blocked.py [ Skip ]
@@ -521,6 +536,9 @@ http/tests/xmlhttprequest/range-test.html [ Skip ]
 http/tests/security/contentSecurityPolicy/upgrade-insecure-requests/upgrade-insecure-sync-xhr-in-main-frame.html [ Skip ]
 # WK1 networking is blocked by JS
 imported/w3c/web-platform-tests/xhr/xhr-timeout-longtask.any.html
+
+webkit.org/b/244715 [ Debug ] imported/w3c/web-platform-tests/xhr/request-content-length.any.worker.html [ Pass Failure ]
+webkit.org/b/244715 [ Debug ] imported/w3c/web-platform-tests/xhr/request-content-length.any.html [ Pass Failure ]
 
 webkit.org/b/187230 editing/mac/pasteboard/can-copy-url-without-title.html [ Skip ]
 
@@ -945,6 +963,8 @@ webkit.org/b/159893 [ Debug ] imported/w3c/web-platform-tests/xhr/event-readysta
 imported/w3c/web-platform-tests/navigation-timing/nav2_test_redirect_server.html [ Pass Failure ]
 imported/w3c/web-platform-tests/navigation-timing/nav2_test_attributes_values.html [ Pass Failure ]
 
+webkit.org/b/244676 [ Debug ] imported/w3c/web-platform-tests/navigation-timing/dom_interactive_media_document.html [ Pass Crash ]
+
 webkit.org/b/160101 userscripts/window-onerror-for-isolated-world-3.html [ Pass Failure ]
 
 # rdar://problem/27723718
@@ -995,6 +1015,41 @@ inspector/network/intercept-aborted-request.html [ Skip ]
 inspector/network/interceptContinue.html [ Skip ]
 
 webkit.org/b/164933 http/tests/misc/link-rel-icon-beforeload.html [ Failure ]
+
+# rdar://92764272 ([ Ventura wk1 ] 18 X fast/html/details (layout-tests) are flaky text failures)
+fast/html/details-add-summary-1-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-10-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-2-and-click.html [ Pass Failure ] 
+fast/html/details-add-summary-3-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-4-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-5-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-6-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-7-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-8-and-click.html [ Pass Failure ]
+fast/html/details-add-summary-9-and-click.html [ Pass Failure ]
+fast/html/details-click-controls.html [ Pass Failure ]
+fast/html/details-mouse-click.html [ Pass Failure ]
+fast/html/details-remove-summary-1-and-click.html [ Pass Failure ]
+fast/html/details-remove-summary-2-and-click.html [ Pass Failure ]
+fast/html/details-remove-summary-3-and-click.html [ Pass Failure ]
+fast/html/details-remove-summary-4-and-click.html [ Pass Failure ]
+fast/html/details-remove-summary-5-and-click.html [ Pass Failure ]
+fast/html/details-remove-summary-6-and-click.html [ Pass Failure ]
+
+# rdar://92765314 ([ Ventura wk1 Release x86_64 ] 8X fast/forms/number/number- (Layout-Tests) are flaky text failures)
+[ Release ] fast/forms/number/number-change-type-on-focus.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-large-padding.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-capturing.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-change-and-input-events.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-click-in-iframe.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-gets-disabled-or-readonly.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-in-multi-column.html [ Pass Failure ]
+[ Release ] fast/forms/number/number-spinbutton-state.html [ Pass Failure ]
+
+#rdar://96906411 (REGRESSION(251850@main): imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-createImageBitmap-e_srgb.html is a constant text failure)
+imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/canvas-createImageBitmap-e_srgb.html [ Skip ]
+imported/w3c/web-platform-tests/reporting/cross-origin-report-no-credentials.https.sub.html [ Failure ]
+imported/w3c/web-platform-tests/reporting/cross-origin-reports-isolated.https.sub.html [ Failure ]
 
 webkit.org/b/165541 compositing/layer-creation/fixed-overlap-extent-rtl.html [ Failure ]
 webkit.org/b/165541 compositing/rtl/rtl-fixed-overflow.html [ Failure ]
@@ -1141,6 +1196,8 @@ fast/images/sprite-sheet-image-draw.html [ Skip ]
 media/video-restricted-invisible-autoplay-not-allowed-source.html [ Skip ]
 media/video-restricted-invisible-autoplay-not-allowed.html [ Skip ]
 
+webkit.org/b/244693 [ Debug ] media/video-element-other-namespace-crash.html [ Skip ]
+
 # <rdar://problem/42736213>
 displaylists/layer-dispay-list.html [ Failure ]
 
@@ -1245,8 +1302,6 @@ webkit.org/b/206668 fast/loader/redirect-to-invalid-url-using-meta-refresh-calls
 
 webkit.org/b/180760 fast/loader/redirect-to-invalid-url-using-meta-refresh-disallowed-async-delegates.html [ Pass Failure ]
 
-webkit.org/b/244607 [ Debug ] fast/loader/opaque-base-url.html [ Crash ]
-
 webkit.org/b/190830 [ Debug ] media/track/video-track-addition-and-frame-removal.html [ Pass Crash ]
 
 webkit.org/b/206974 http/tests/security/contentSecurityPolicy/block-all-mixed-content/insecure-image-in-xslt-document-in-iframe-with-inherited-policy.html [ Pass Failure ]
@@ -1281,7 +1336,7 @@ webkit.org/b/207891 imported/w3c/web-platform-tests/css/css-position/fixed-z-ind
 
 http/tests/websocket/web-socket-loads-captured-in-per-page-domains.html [ Skip ]
 
-webkit.org/b/208022 [ Debug ] http/tests/history/back-to-post.py [ Pass Failure ]
+webkit.org/b/208022 http/tests/history/back-to-post.py [ Pass Failure ]
 
 # prefetch not supported in WK1
 http/wpt/prefetch [ Skip ]
@@ -1335,6 +1390,8 @@ media/modern-media-controls/media-controller/media-controller-inline-to-fullscre
 media/modern-media-controls/placard-support/placard-support-pip.html [ Skip ]
 media/presentationmodechanged-fired-once.html [ Skip ]
 media/video-presentation-mode.html [ Skip ]
+
+webkit.org/b/244696 [ Debug ] media/modern-media-controls/media-documents/insert-style-should-not-crash.html [ Skip ]
 
 webkit.org/b/213896 imported/w3c/web-platform-tests/css/css-flexbox/overflow-auto-008.html [ Pass Failure ]
 
@@ -1514,13 +1571,15 @@ webkit.org/b/223944 [ BigSur Debug ] imported/w3c/web-platform-tests/xhr/event-u
 [ BigSur ] webanimations/accelerated-animation-easing-and-direction-update.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-animation-slot-invalidation.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-animation-with-easing.html [ Pass ImageOnlyFailure ]
-[ BigSur ] webanimations/accelerated-css-transition-with-easing-y-axis-above-1.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-overlapping-transform-animations.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-transform-related-animation-property-order.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-transition-by-removing-property.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-translate-animation-additional-animation-added-in-flight.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-translate-animation-underlying-transform-changed-in-flight.html [ Pass ImageOnlyFailure ]
 [ BigSur ] webanimations/accelerated-translate-animation.html [ Pass ImageOnlyFailure ]
+
+# rdar://80340735 ([ Monterey wk1 arm64 ] webanimations/accelerated-css-transition-with-easing-y-axis-above-1.html is a flaky image only failure)
+webkit.org/b/244891 webanimations/accelerated-css-transition-with-easing-y-axis-above-1.html [ Pass ImageOnlyFailure Timeout ]
 
 # webkit.org/b/223904 Updating test expectations for 9 tests
 [ BigSur ] transforms/2d/scale-change-composited.html [ Pass ImageOnlyFailure ]
@@ -1539,9 +1598,6 @@ webkit.org/b/223944 [ BigSur Debug ] imported/w3c/web-platform-tests/xhr/event-u
 
 # rdar://80346720 ([Monterey Wk1] media/media-source/media-webm-opus-partial.html is a consistent failure)
 [ Monterey ] media/media-source/media-webm-opus-partial.html [ Failure ]
-
-# rdar://80340735 ([ Monterey wk1 arm64 ] webanimations/accelerated-css-transition-with-easing-y-axis-above-1.html is a flaky image only failure)
-[ Monterey arm64 ] webanimations/accelerated-css-transition-with-easing-y-axis-above-1.html [ Pass Timeout ]
 
 #nrdar://80343068 ([ Monterey wk1 arm64] webanimations/accelerated-translate-animation-additional-animation-added-in-flight.html is a flaky image only failure)
 [ Monterey arm64 ] webanimations/accelerated-translate-animation-additional-animation-added-in-flight.html [ Pass ImageOnlyFailure ]
@@ -1960,7 +2016,29 @@ webkit.org/b/243494 [ Debug ] compositing/layer-creation/scale-rotation-animatio
 imported/w3c/web-platform-tests/compression [ Skip ]
 
 # webkit.org/b/243733 [ Mac wk1 ] Many recently imported mixed-content WPT tests are failing on Mac wk1
-imported/w3c/web-platform-tests/mixed-content [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/audio-tag.https.html [ Failure ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/video-tag.https.html [ Failure ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/audio-tag.https.html [ Failure ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/video-tag.https.html [ Failure ]
+
+# WebKitLegacy does not support Shared Workers, so skip related tests.
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-classic-data.http-rp [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-classic-data.meta [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-classic.http-rp [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-module-data.http-rp [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-module-data.meta [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/sharedworker-module.http-rp [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/sharedworker-classic.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/sharedworker-import-data.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.http-rp/opt-in/sharedworker-module.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/opt-in/sharedworker-classic.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/opt-in/sharedworker-import-data.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/opt-in/sharedworker-import.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/opt-in/sharedworker-module.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/sharedworker-classic.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/sharedworker-import-data.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/sharedworker-import.https.html [ Skip ]
+imported/w3c/web-platform-tests/mixed-content/gen/top.meta/unset/sharedworker-module.https.html [ Skip ]
 
 # webkit.org/b/243738 [ macOS wk1 ] Multiple imported/w3c/web-platform-tests/wasm tests are a constant failure on Mac wk1
 imported/w3c/web-platform-tests/wasm [ Skip ]
@@ -1996,5 +2074,14 @@ webkit.org/b/244417 imported/w3c/web-platform-tests/web-animations/animation-mod
 webkit.org/b/244417 imported/w3c/web-platform-tests/web-animations/animation-model/animation-types/addition-per-property-002.html [ Crash ]
 webkit.org/b/244417 imported/w3c/web-platform-tests/web-animations/animation-model/animation-types/interpolation-per-property-002.html [ Crash ]
 
-imported/w3c/web-platform-tests/reporting/cross-origin-report-no-credentials.https.sub.html [ Failure ]
-imported/w3c/web-platform-tests/reporting/cross-origin-reports-isolated.https.sub.html [ Failure ]
+webkit.org/b/244636 [ Monterey Debug ] media/modern-media-controls/pip-support/pip-support-click.html [ Pass Crash ]
+
+webkit.org/b/244637 imported/w3c/web-platform-tests/content-security-policy/generic/304-response-should-update-csp.sub.html [ Pass Failure ]
+
+webkit.org/b/244649 [ Debug ] imported/w3c/web-platform-tests/css/css-align/baseline-rules/synthesized-baseline-flexbox-001.html [ Pass Crash ]
+
+webkit.org/b/244652 [ Debug ] imported/w3c/web-platform-tests/html/semantics/embedded-content/bfcache/embedded-mp4.html [ Pass Crash ]
+
+webkit.org/b/244677 media/media-source/media-source-istypesupported-vp8-without-vp9.html [ Pass Failure ]
+
+webkit.org/b/244714 [ Debug ] imported/w3c/web-platform-tests/html/browsers/browsing-the-web/read-media/pageload-video.html [ Skip ]

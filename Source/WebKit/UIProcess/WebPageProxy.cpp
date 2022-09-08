@@ -1702,6 +1702,10 @@ void WebPageProxy::loadAlternateHTML(const IPC::DataReference& htmlData, const S
     m_process->markProcessAsRecentlyUsed();
     m_process->assumeReadAccessToBaseURL(*this, baseURL.string());
     m_process->assumeReadAccessToBaseURL(*this, unreachableURL.string());
+    if (baseURL.isLocalFile())
+        m_process->addPreviouslyApprovedFileURL(baseURL);
+    if (unreachableURL.isLocalFile())
+        m_process->addPreviouslyApprovedFileURL(unreachableURL);
     send(Messages::WebPage::LoadAlternateHTML(loadParameters));
     m_process->startResponsivenessTimer();
 }
@@ -3717,6 +3721,9 @@ void WebPageProxy::continueNavigationInNewProcess(API::Navigation& navigation, s
     RELEASE_ASSERT(!newProcess->isInProcessCache());
     ASSERT(shouldTreatAsContinuingLoad != ShouldTreatAsContinuingLoad::No);
 
+    if (navigation.currentRequest().url().isLocalFile())
+        newProcess->addPreviouslyApprovedFileURL(navigation.currentRequest().url());
+
     if (m_provisionalPage) {
         WEBPAGEPROXY_RELEASE_LOG(ProcessSwapping, "continueNavigationInNewProcess: There is already a pending provisional load, cancelling it (provisonalNavigationID=%llu, navigationID=%llu)", m_provisionalPage->navigationID(), navigation.navigationID());
         if (m_provisionalPage->navigationID() != navigation.navigationID())
@@ -5063,7 +5070,7 @@ void WebPageProxy::callLoadCompletionHandlersIfNecessary(bool success)
 static OptionSet<CrossSiteNavigationDataTransfer::Flag> checkIfNavigationContainsDataTransfer(const SecurityOriginData requesterOrigin, const ResourceRequest& currentRequest)
 {
     OptionSet<CrossSiteNavigationDataTransfer::Flag> navigationDataTransfer;
-    if (requesterOrigin.securityOrigin()->isUnique())
+    if (requesterOrigin.securityOrigin()->isOpaque())
         return navigationDataTransfer;
 
     auto currentURL = currentRequest.url();
@@ -5566,7 +5573,10 @@ void WebPageProxy::decidePolicyForNavigationActionAsyncShared(Ref<WebProcessProx
     auto* frame = process->webFrame(frameID);
     MESSAGE_CHECK(process, frame);
 
-    auto sender = PolicyDecisionSender::create(identifier, [webPageID, frameID, listenerID, process] (const auto& policyDecision) {
+    auto sender = PolicyDecisionSender::create(identifier, [webPageID, frameID, listenerID, process, url = request.url()] (const auto& policyDecision) {
+        if (policyDecision.policyAction == PolicyAction::Use && url.isLocalFile())
+            process->addPreviouslyApprovedFileURL(url);
+
         process->send(Messages::WebPage::DidReceivePolicyDecision(frameID, listenerID, policyDecision
 #if !ENABLE(CONTENT_FILTERING_IN_NETWORKING_PROCESS)
             , createNetworkExtensionsSandboxExtensions(process)
@@ -6348,10 +6358,10 @@ void WebPageProxy::setStatusText(const String& text)
     m_uiClient->setStatusText(this, text);
 }
 
-void WebPageProxy::mouseDidMoveOverElement(WebHitTestResultData&& hitTestResultData, OptionSet<WebEvent::Modifier> modifiers, UserData&& userData)
+void WebPageProxy::mouseDidMoveOverElement(WebHitTestResultData&& hitTestResultData, uint32_t opaqueModifiers, UserData&& userData)
 {
     m_lastMouseMoveHitTestResult = API::HitTestResult::create(hitTestResultData);
-
+    auto modifiers = OptionSet<WebEvent::Modifier>::fromRaw(opaqueModifiers);
     m_uiClient->mouseDidMoveOverElement(*this, hitTestResultData, modifiers, m_process->transformHandlesToObjects(userData.object()).get());
     setToolTip(hitTestResultData.toolTipText);
 }
@@ -6967,6 +6977,15 @@ void WebPageProxy::requestDOMPasteAccess(WebCore::DOMPasteAccessCategory pasteAc
 
 void WebPageProxy::backForwardAddItem(BackForwardListItemState&& itemState)
 {
+    backForwardAddItemShared(m_process.copyRef(), WTFMove(itemState));
+}
+
+void WebPageProxy::backForwardAddItemShared(Ref<WebProcessProxy>&& process, BackForwardListItemState&& itemState)
+{
+    URL itemURL { itemState.pageState.mainFrameState.urlString };
+    ASSERT(!itemURL.isLocalFile() || process->wasPreviouslyApprovedFileURL(itemURL));
+    MESSAGE_CHECK(process, !itemURL.isLocalFile() || process->wasPreviouslyApprovedFileURL(itemURL));
+
     auto item = WebBackForwardListItem::create(WTFMove(itemState), identifier());
     item->setResourceDirectoryURL(currentResourceDirectoryURL());
     m_backForwardList->addItem(WTFMove(item));
@@ -8075,7 +8094,7 @@ URL WebPageProxy::currentResourceDirectoryURL() const
 void WebPageProxy::resetStateAfterProcessTermination(ProcessTerminationReason reason)
 {
     if (reason != ProcessTerminationReason::NavigationSwap)
-        WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "processDidTerminate: (pid %d), reason=%{public}s", processIdentifier(), processTerminationReasonToString(reason));
+        WEBPAGEPROXY_RELEASE_LOG_ERROR(Process, "processDidTerminate: (pid %d), reason=%" PUBLIC_LOG_STRING, processIdentifier(), processTerminationReasonToString(reason));
 
     ASSERT(m_hasRunningProcess);
 
@@ -8132,7 +8151,7 @@ static bool shouldReloadAfterProcessTermination(ProcessTerminationReason reason)
 
 void WebPageProxy::dispatchProcessDidTerminate(ProcessTerminationReason reason)
 {
-    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: reason=%{public}s", processTerminationReasonToString(reason));
+    WEBPAGEPROXY_RELEASE_LOG_ERROR(Loading, "dispatchProcessDidTerminate: reason=%" PUBLIC_LOG_STRING, processTerminationReasonToString(reason));
 
     bool handledByClient = false;
     if (m_loaderClient)
@@ -8901,7 +8920,7 @@ void WebPageProxy::queryPermission(const ClientOrigin& clientOrigin, const Permi
         completionHandler(*result);
     };
 
-    if (clientOrigin.topOrigin.isUnique()) {
+    if (clientOrigin.topOrigin.isOpaque()) {
         callback(PermissionState::Prompt);
         return;
     }
@@ -10462,14 +10481,10 @@ void WebPageProxy::touchBarMenuItemDataRemoved(const TouchBarMenuItemData& touch
 }
 #endif
 
-#if HAVE(PASTEBOARD_DATA_OWNER)
-
 DataOwnerType WebPageProxy::dataOwnerForPasteboard(PasteboardAccessIntent intent) const
 {
     return pageClient().dataOwnerForPasteboard(intent);
 }
-
-#endif
 
 #if ENABLE(ATTACHMENT_ELEMENT)
 
@@ -11637,6 +11652,11 @@ bool WebPageProxy::shouldAvoidSynchronouslyWaitingToPreventDeadlock() const
 #endif // ENABLE(GPU_PROCESS)
 
     return false;
+}
+
+void WebPageProxy::generateTestReport(const String& message, const String& group)
+{
+    send(Messages::WebPage::GenerateTestReport(message, group));
 }
 
 } // namespace WebKit

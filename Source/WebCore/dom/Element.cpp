@@ -1874,6 +1874,13 @@ void Element::setAttribute(const QualifiedName& name, const AtomString& value)
     setAttributeInternal(index, name, value, NotInSynchronizationOfLazyAttribute);
 }
 
+void Element::setAttributeWithoutOverwriting(const QualifiedName& name, const AtomString& value)
+{
+    synchronizeAttribute(name);
+    if (!elementData() || elementData()->findAttributeIndexByName(name) == ElementData::attributeNotFound)
+        addAttributeInternal(name, value, NotInSynchronizationOfLazyAttribute);
+}
+
 void Element::setAttributeWithoutSynchronization(const QualifiedName& name, const AtomString& value)
 {
     unsigned index = elementData() ? elementData()->findAttributeIndexByName(name) : ElementData::attributeNotFound;
@@ -2082,7 +2089,7 @@ void Element::setElementAttribute(const QualifiedName& attributeName, Element* e
     else
         setAttribute(attributeName, emptyAtom());
 
-    explicitlySetAttrElementsMap().set(attributeName, Vector<WeakPtr<Element>> { element });
+    explicitlySetAttrElementsMap().set(attributeName, Vector<WeakPtr<Element, WeakPtrImplWithEventTargetData>> { element });
 }
 
 std::optional<Vector<RefPtr<Element>>> Element::getElementsArrayAttribute(const QualifiedName& attributeName) const
@@ -2128,7 +2135,7 @@ void Element::setElementsArrayAttribute(const QualifiedName& attributeName, std:
         return;
     }
 
-    Vector<WeakPtr<Element>> newElements;
+    Vector<WeakPtr<Element, WeakPtrImplWithEventTargetData>> newElements;
     newElements.reserveInitialCapacity(elements->size());
     StringBuilder value;
     for (auto element : elements.value()) {
@@ -2149,46 +2156,16 @@ void Element::setElementsArrayAttribute(const QualifiedName& attributeName, std:
     explicitlySetAttrElementsMap().set(attributeName, WTFMove(newElements));
 }
 
-template <typename CharacterType>
-static inline bool isNonEmptyTokenList(const CharacterType* characters, unsigned length)
-{
-    ASSERT(length > 0);
-
-    unsigned i = 0;
-    do {
-        if (isNotHTMLSpace(characters[i]))
-            break;
-        ++i;
-    } while (i < length);
-
-    return i < length;
-}
-
-static inline bool isNonEmptyTokenList(const AtomString& stringValue)
-{
-    unsigned length = stringValue.length();
-
-    if (!length)
-        return false;
-
-    if (stringValue.is8Bit())
-        return isNonEmptyTokenList(stringValue.characters8(), length);
-    return isNonEmptyTokenList(stringValue.characters16(), length);
-}
-
 void Element::classAttributeChanged(const AtomString& newClassString)
 {
     // Note: We'll need ElementData, but it doesn't have to be UniqueElementData.
     if (!elementData())
         ensureUniqueElementData();
 
-    auto shouldFoldCase = document().inQuirksMode() ? SpaceSplitString::ShouldFoldCase::Yes : SpaceSplitString::ShouldFoldCase::No;
-    bool newStringHasClasses = isNonEmptyTokenList(newClassString);
-
-    auto oldClassNames = elementData()->classNames();
-    auto newClassNames = newStringHasClasses ? SpaceSplitString(newClassString, shouldFoldCase) : SpaceSplitString();
     {
-        Style::ClassChangeInvalidation styleInvalidation(*this, oldClassNames, newClassNames);
+        auto shouldFoldCase = document().inQuirksMode() ? SpaceSplitString::ShouldFoldCase::Yes : SpaceSplitString::ShouldFoldCase::No;
+        SpaceSplitString newClassNames(newClassString, shouldFoldCase);
+        Style::ClassChangeInvalidation styleInvalidation(*this, elementData()->classNames(), newClassNames);
         elementData()->setClassNames(WTFMove(newClassNames));
     }
 
@@ -2200,11 +2177,9 @@ void Element::classAttributeChanged(const AtomString& newClassString)
 
 void Element::partAttributeChanged(const AtomString& newValue)
 {
-    bool hasParts = isNonEmptyTokenList(newValue);
-    if (hasParts || !partNames().isEmpty()) {
-        auto newParts = hasParts ? SpaceSplitString(newValue, SpaceSplitString::ShouldFoldCase::No) : SpaceSplitString();
+    SpaceSplitString newParts(newValue, SpaceSplitString::ShouldFoldCase::No);
+    if (!newParts.isEmpty() || !partNames().isEmpty())
         ensureElementRareData().setPartNames(WTFMove(newParts));
-    }
 
     if (hasRareData()) {
         if (auto* partList = elementRareData()->partList())
@@ -2322,6 +2297,11 @@ void Element::invalidateForQueryContainerSizeChange()
     // FIXME: Ideally we would just recompute things that are actually affected by containers queries within the subtree.
     Node::invalidateStyle(Style::Validity::SubtreeInvalid);
     setNodeFlag(NodeFlag::NeedsUpdateQueryContainerDependentStyle);
+}
+
+void Element::invalidateForResumingQueryContainerResolution()
+{
+    markAncestorsForInvalidatedStyle();
 }
 
 bool Element::needsUpdateQueryContainerDependentStyle() const
@@ -2555,6 +2535,10 @@ void Element::removedFromAncestor(RemovalType removalType, ContainerNode& oldPar
         page->pointerLockController().elementWasRemoved(*this);
 #endif
         page->pointerCaptureController().elementWasRemoved(*this);
+#if ENABLE(WHEEL_EVENT_LATCHING)
+        if (auto* scrollLatchingController = page->scrollLatchingControllerIfExists())
+            scrollLatchingController->removeLatchingStateForTarget(*this);
+#endif
     }
 
     setSavedLayerScrollPosition(ScrollPosition());
@@ -2604,13 +2588,6 @@ void Element::removedFromAncestor(RemovalType removalType, ContainerNode& oldPar
     }
 
     Styleable::fromElement(*this).elementWasRemoved();
-
-#if ENABLE(WHEEL_EVENT_LATCHING)
-    if (RefPtr frame = document().frame(); frame && frame->page()) {
-        if (auto* scrollLatchingController = frame->page()->scrollLatchingControllerIfExists())
-            scrollLatchingController->removeLatchingStateForTarget(*this);
-    }
-#endif
 
     if (UNLIKELY(isInTopLayer()))
         removeFromTopLayer();
@@ -2832,6 +2809,22 @@ CustomElementReactionQueue* Element::reactionQueue() const
     if (!hasRareData())
         return nullptr;
     return elementRareData()->customElementReactionQueue();
+}
+
+CustomElementDefaultARIA& Element::customElementDefaultARIA()
+{
+    ASSERT(isPrecustomizedOrDefinedCustomElement());
+    auto* deafultARIA = elementRareData()->customElementDefaultARIA();
+    if (!deafultARIA) {
+        elementRareData()->setCustomElementDefaultARIA(makeUnique<CustomElementDefaultARIA>());
+        deafultARIA = elementRareData()->customElementDefaultARIA();
+    }
+    return *deafultARIA;
+}
+
+CustomElementDefaultARIA* Element::customElementDefaultARIAIfExists()
+{
+    return isPrecustomizedOrDefinedCustomElement() && hasRareData() ? elementRareData()->customElementDefaultARIA() : nullptr;
 }
 
 const AtomString& Element::shadowPseudoId() const
@@ -4991,9 +4984,9 @@ Vector<RefPtr<WebAnimation>> Element::getAnimations(std::optional<GetAnimationsO
     return animations;
 }
 
-static WeakHashMap<Element, ElementIdentifier>& elementIdentifiersMap()
+static WeakHashMap<Element, ElementIdentifier, WeakPtrImplWithEventTargetData>& elementIdentifiersMap()
 {
-    static MainThreadNeverDestroyed<WeakHashMap<Element, ElementIdentifier>> map;
+    static MainThreadNeverDestroyed<WeakHashMap<Element, ElementIdentifier, WeakPtrImplWithEventTargetData>> map;
     return map;
 }
 

@@ -8,7 +8,7 @@ for (var i = 0; i < length; i++)
     var {slice} = Array.prototype;
     var lastSlice;
 
-    for (var j = 0; j < 1e7; j++)
+    for (var j = 0; j < 1e6; j++)
         lastSlice = slice.call(target);
 
     if (lastSlice.pop().index !== 99)
