@@ -115,7 +115,7 @@ public:
         m_isTouchEvent = webEvent.isTouchEvent();
 #endif
         m_modifierFlags = 0;
-        if (webEvent.shiftKey())
+        if (webEvent.shiftKey()) // TODO: convert from platformmouseevent to nsevent...webeventmodifier
             m_modifierFlags |= static_cast<unsigned>(WebEvent::Modifier::ShiftKey);
         if (webEvent.controlKey())
             m_modifierFlags |= static_cast<unsigned>(WebEvent::Modifier::ControlKey);
