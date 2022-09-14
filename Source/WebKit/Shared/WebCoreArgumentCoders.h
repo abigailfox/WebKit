@@ -120,7 +120,6 @@ class Color;
 class SharedBuffer;
 class CSPViolationReportBody;
 class Credential;
-class CubicBezierTimingFunction;
 class Cursor;
 class DatabaseDetails;
 class DragData;
@@ -133,7 +132,6 @@ class Font;
 class FontPlatformData;
 class HTTPHeaderMap;
 class KeyframeValueList;
-class LinearTimingFunction;
 class Notification;
 class NotificationResources;
 class PasteboardCustomData;
@@ -149,8 +147,6 @@ class ResourceResponse;
 class ScriptBuffer;
 class SecurityOrigin;
 class FragmentedSharedBuffer;
-class SpringTimingFunction;
-class StepsTimingFunction;
 class StickyPositionViewportConstraints;
 class SystemImage;
 class TextCheckingRequestData;
@@ -173,10 +169,8 @@ struct Length;
 struct GrammarDetail;
 struct MimeClassInfo;
 struct PasteboardImage;
-struct PluginInfo;
 struct PromisedAttachmentInfo;
 struct RecentSearch;
-struct ResourceLoadStatistics;
 struct ScrollableAreaParameters;
 struct TextCheckingResult;
 struct TextIndicatorData;
@@ -271,26 +265,6 @@ template<> struct ArgumentCoder<WebCore::EventTrackingRegions> {
     static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::EventTrackingRegions&);
 };
 
-template<> struct ArgumentCoder<WebCore::LinearTimingFunction> {
-    static void encode(Encoder&, const WebCore::LinearTimingFunction&);
-    static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::LinearTimingFunction&);
-};
-
-template<> struct ArgumentCoder<WebCore::CubicBezierTimingFunction> {
-    static void encode(Encoder&, const WebCore::CubicBezierTimingFunction&);
-    static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::CubicBezierTimingFunction&);
-};
-
-template<> struct ArgumentCoder<WebCore::StepsTimingFunction> {
-    static void encode(Encoder&, const WebCore::StepsTimingFunction&);
-    static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::StepsTimingFunction&);
-};
-
-template<> struct ArgumentCoder<WebCore::SpringTimingFunction> {
-    static void encode(Encoder&, const WebCore::SpringTimingFunction&);
-    static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::SpringTimingFunction&);
-};
-
 template<> struct ArgumentCoder<WebCore::CertificateInfo> {
     template<typename Encoder>
     static void encode(Encoder&, const WebCore::CertificateInfo&);
@@ -330,11 +304,6 @@ template<> struct ArgumentCoder<WebCore::VelocityData> {
 template<> struct ArgumentCoder<WebCore::MimeClassInfo> {
     static void encode(Encoder&, const WebCore::MimeClassInfo&);
     static std::optional<WebCore::MimeClassInfo> decode(Decoder&);
-};
-
-template<> struct ArgumentCoder<WebCore::PluginInfo> {
-    static void encode(Encoder&, const WebCore::PluginInfo&);
-    static std::optional<WebCore::PluginInfo> decode(Decoder&);
 };
 
 template<> struct ArgumentCoder<WebCore::AuthenticationChallenge> {
@@ -592,11 +561,6 @@ template<> struct ArgumentCoder<WebCore::ExceptionDetails> {
     static WARN_UNUSED_RETURN bool decode(Decoder&, WebCore::ExceptionDetails&);
 };
 
-template<> struct ArgumentCoder<WebCore::ResourceLoadStatistics> {
-    static void encode(Encoder&, const WebCore::ResourceLoadStatistics&);
-    static std::optional<WebCore::ResourceLoadStatistics> decode(Decoder&);
-};
-
 #if ENABLE(APPLE_PAY)
 
 template<> struct ArgumentCoder<WebCore::Payment> {
@@ -750,15 +714,6 @@ template<> struct ArgumentCoder<WebCore::CDMInstanceSession::Message> {
 template<> struct ArgumentCoder<WebCore::PaymentInstallmentConfiguration> {
     static void encode(Encoder&, const WebCore::PaymentInstallmentConfiguration&);
     static std::optional<WebCore::PaymentInstallmentConfiguration> decode(Decoder&);
-};
-#endif
-
-#if ENABLE(GPU_PROCESS) && ENABLE(WEBGL)
-
-template<> struct ArgumentCoder<WebCore::GraphicsContextGL::ActiveInfo> {
-    template<typename Encoder>
-    static void encode(Encoder&, const WebCore::GraphicsContextGL::ActiveInfo&);
-    static std::optional<WebCore::GraphicsContextGL::ActiveInfo> decode(Decoder&);
 };
 #endif
 

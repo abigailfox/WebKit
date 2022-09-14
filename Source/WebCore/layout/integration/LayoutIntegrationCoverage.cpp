@@ -45,7 +45,7 @@
 #include <pal/Logging.h>
 #include <wtf/OptionSet.h>
 
-#define ALLOW_FLOATS 0
+#define ALLOW_FLOATS 1
 #define ALLOW_RTL_FLOATS 0
 
 #ifndef NDEBUG
@@ -378,6 +378,8 @@ static OptionSet<AvoidanceReason> canUseForChild(const RenderObject& child, Incl
         if (!renderer.parent()->style().isLeftToRightDirection())
             return false;
 #endif
+        if (renderer.style().shapeOutside())
+            return false;
         if (renderer.isOutOfFlowPositioned()) {
             if (!is<RenderReplaced>(renderer))
                 return false;

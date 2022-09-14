@@ -32,8 +32,10 @@ class Namespace::OtherClass {
 
 [LegacyPopulateFrom=EmptyConstructor] class Namespace::EmptyConstructorNullable {
     [ReturnEarlyIfTrue] bool m_isNull;
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     MemberType m_type;
     OtherMemberType m_value;
+#endif
 }
 
 class WithoutNamespace {
@@ -42,4 +44,15 @@ class WithoutNamespace {
 
 [AdditionalEncoder=OtherEncoder] class WithoutNamespaceWithAttributes {
     int a;
+}
+
+enum class EnumNamespace::EnumType : uint16_t {
+    FirstValue,
+    SecondValue
+}
+
+[OptionSet] enum class EnumNamespace2::OptionSetEnumType : uint8_t {
+    OptionSetFirstValue,
+    OptionSetSecondValue,
+    OptionSetThirdValue
 }

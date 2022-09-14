@@ -372,8 +372,9 @@ void Connection::readyReadHandler()
     }
 }
 
-bool Connection::open()
+bool Connection::open(Client& client)
 {
+    ASSERT(!m_client);
     if (!setNonBlock(m_socketDescriptor)) {
         ASSERT_NOT_REACHED();
         return false;
@@ -381,6 +382,7 @@ bool Connection::open()
 
     RefPtr<Connection> protectedThis(this);
     m_isConnected = true;
+    m_client = &client;
 #if USE(GLIB)
     m_readSocketMonitor.start(m_socket.get(), G_IO_IN, m_connectionQueue->runLoop(), [protectedThis] (GIOCondition condition) -> gboolean {
         if (condition & G_IO_HUP || condition & G_IO_ERR || condition & G_IO_NVAL) {
@@ -638,6 +640,6 @@ void Connection::didReceiveSyncReply(OptionSet<SendSyncOption>)
 std::optional<Connection::ConnectionIdentifierPair> Connection::createConnectionIdentifierPair()
 {
     Connection::SocketPair socketPair = Connection::createPlatformConnection();
-    return ConnectionIdentifierPair { Identifier { socketPair.server }, Attachment { UnixFileDescriptor { socketPair.client, UnixFileDescriptor::Adopt } } };
+    return ConnectionIdentifierPair { Identifier { UnixFileDescriptor { socketPair.server,  UnixFileDescriptor::Adopt } }, UnixFileDescriptor { socketPair.client, UnixFileDescriptor::Adopt } };
 }
 } // namespace IPC

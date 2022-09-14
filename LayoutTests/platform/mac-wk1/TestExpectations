@@ -315,6 +315,9 @@ imported/w3c/web-platform-tests/html/semantics/forms/the-datalist-element [ Wont
 # Default ARIA for custom elements are not yet enabled
 accessibility/custom-elements/role.html [ Skip ]
 
+# Missing necessary testing logic (AccessibilityController::{get,set}RetainedElement)
+accessibility/ax-object-destroyed-on-reload.html [ Skip ]
+
 # DOM paste access requests are not implemented in WebKit1.
 editing/async-clipboard/clipboard-change-data-while-reading.html [ Skip ]
 editing/async-clipboard/clipboard-do-not-read-text-from-platform-if-text-changes.html [ Skip ]
@@ -417,6 +420,8 @@ imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-below-viewport-dynamic.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-base-url-2.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-base-url.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-data-url-to-https.html [ Skip ]
+imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-empty-src.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-cross-origin-iframe-001.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-in-cross-origin-iframe-002.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/embedded-content/the-img-element/image-loading-lazy-multiple-times.html [ Skip ]
@@ -1211,7 +1216,7 @@ webkit.org/b/189756 compositing/filters/opacity-change-on-filtered-paints-into-a
 
 webkit.org/b/189723 http/tests/security/cross-origin-xsl-redirect-BLOCKED.html [ Pass Failure ]
 
-webkit.org/b/190832 [ Debug ] fast/forms/state-restore-to-non-edited-controls.html [ Pass Failure ]
+webkit.org/b/190832 fast/forms/state-restore-to-non-edited-controls.html [ Pass Failure ]
 
 webkit.org/b/190849 http/tests/security/XFrameOptions/x-frame-options-multiple-headers-sameorigin-deny.html [ Pass Failure ]
 
@@ -1356,6 +1361,8 @@ webkit.org/b/209560 imported/w3c/web-platform-tests/xhr/send-response-upload-eve
 webkit.org/b/209882 [ Debug ] inspector/page/overrideSetting-ICECandidateFilteringEnabled.html [ Pass Timeout ]
 
 webkit.org/b/209921 [ Debug ] inspector/css/add-css-property.html [ Pass Timeout ]
+
+webkit.org/b/245038 inspector/css/nodeLayoutFlagsChanged-Scrollable.html [ Pass Failure ]
 
 webkit.org/b/210079 [ Debug ] inspector/debugger/evaluateOnCallFrame-errors.html [ Pass Failure ]
 
@@ -1533,6 +1540,8 @@ fast/layoutformattingcontext/wbr-simple.html [ ImageOnlyFailure ]
 webkit.org/b/219498 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-padding-003.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/244538 [ Debug ] imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-margin-003.html [ Pass ImageOnlyFailure ]
+
+webkit.org/b/245034 imported/w3c/web-platform-tests/css/css-scroll-snap/scroll-target-align-003.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/221009 fast/harness/render-tree-as-text-options.html [ Pass Failure ]
 
@@ -2060,6 +2069,10 @@ webkit.org/b/244312 http/tests/media/fairplay/fps-hls.html [ Pass Failure ]
 
 webkit.org/b/244601 http/tests/media/fairplay/fps-mse-unmuxed-key-renewal.html [ Failure ]
 
+webkit.org/b/245036 http/tests/media/fairplay/fps-hls-key-rotation.html [ Failure ]
+
+webkit.org/b/245037 [ Monterey ] http/tests/media/fairplay/fps-hls-update-reject.html [ Pass Failure ]
+
 webkit.org/b/244336 fast/canvas/canvas-createPattern-video-loading.html [ Pass Timeout ]
 
 webkit.org/b/244347 storage/domstorage/sessionstorage/window-open-remove-item.html [ Pass Failure ]
@@ -2085,3 +2098,14 @@ webkit.org/b/244652 [ Debug ] imported/w3c/web-platform-tests/html/semantics/emb
 webkit.org/b/244677 media/media-source/media-source-istypesupported-vp8-without-vp9.html [ Pass Failure ]
 
 webkit.org/b/244714 [ Debug ] imported/w3c/web-platform-tests/html/browsers/browsing-the-web/read-media/pageload-video.html [ Skip ]
+
+webkit.org/b/245008 fast/attachment/mac/attachment-numbers.html [ Skip ]
+webkit.org/b/245008 fast/attachment/mac/attachment-pages.html [ Skip ]
+webkit.org/b/245008 fast/attachment/mac/attachment-keynote.html [ Skip ]
+
+webkit.org/b/245014 imported/w3c/web-platform-tests/cookies/value/value-ctl.html [ Pass Failure ]
+
+webkit.org/b/245035 imported/w3c/web-platform-tests/fetch/metadata/script.https.sub.html [ Pass Failure ]
+
+webkit.org/b/245102 imported/w3c/web-platform-tests/html/browsers/windows/auxiliary-browsing-contexts/opener-noreferrer.html [ Pass Failure ]
+

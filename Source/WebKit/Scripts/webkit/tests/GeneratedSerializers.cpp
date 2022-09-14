@@ -209,8 +209,12 @@ void ArgumentCoder<Namespace::EmptyConstructorNullable>::encode(Encoder& encoder
     encoder << instance.m_isNull;
     if (instance.m_isNull)
         return;
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     encoder << instance.m_type;
+#endif
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     encoder << instance.m_value;
+#endif
 }
 
 std::optional<Namespace::EmptyConstructorNullable> ArgumentCoder<Namespace::EmptyConstructorNullable>::decode(Decoder& decoder)
@@ -222,20 +226,28 @@ std::optional<Namespace::EmptyConstructorNullable> ArgumentCoder<Namespace::Empt
     if (*m_isNull)
         return { Namespace::EmptyConstructorNullable { } };
 
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     std::optional<MemberType> m_type;
     decoder >> m_type;
     if (!m_type)
         return std::nullopt;
+#endif
 
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     std::optional<OtherMemberType> m_value;
     decoder >> m_value;
     if (!m_value)
         return std::nullopt;
+#endif
 
     Namespace::EmptyConstructorNullable result;
     result.m_isNull = WTFMove(*m_isNull);
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     result.m_type = WTFMove(*m_type);
+#endif
+#if CONDITION_AROUND_M_TYPE_AND_M_VALUE
     result.m_value = WTFMove(*m_value);
+#endif
     return { WTFMove(result) };
 }
 
@@ -281,3 +293,27 @@ std::optional<WithoutNamespaceWithAttributes> ArgumentCoder<WithoutNamespaceWith
 }
 
 } // namespace IPC
+
+namespace WTF {
+
+template<> bool isValidEnum<EnumNamespace::EnumType>(uint16_t value)
+{
+    switch (value) {
+    case EnumNamespace::EnumType::FirstValue:
+    case EnumNamespace::EnumType::SecondValue:
+        return true;
+    default:
+        return false;
+    }
+}
+
+template<> bool isValidOptionSet<EnumNamespace2::OptionSetEnumType>(OptionSet<EnumNamespace2::OptionSetEnumType> value)
+{
+    constexpr uint8_t allValidBitsValue =
+        static_cast<uint8_t>(EnumNamespace2::OptionSetEnumType::OptionSetFirstValue)
+        | static_cast<uint8_t>(EnumNamespace2::OptionSetEnumType::OptionSetSecondValue)
+        | static_cast<uint8_t>(EnumNamespace2::OptionSetEnumType::OptionSetThirdValue);
+    return (value.toRaw() | allValidBitsValue) == allValidBitsValue;
+}
+
+} // namespace WTF
