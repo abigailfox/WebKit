@@ -679,21 +679,24 @@ public:
     using const_reverse_iterator = ReverseIterator<const T>;
 
     
+    //TODO: 
     class Iterator {
     public:
         Iterator& operator++()
         {
-            ASSERT(t_ptr); // TODO: fix w/at() logic
+            //TODO: can you increment the end iterator
+            ASSERT(m_vector.size() < position)
             t_ptr++;
         }
         bool operator==(Iterator rhs) const
         {
-            return t_ptr == rhs.t_ptr;
+            return m_position == rhs.m_position;
         }
         bool operator!=(Iterator rhs) const
         {
-            return !(this == rhs);
+            return !(m_position == rhs.m_position);
         }
+        //TODO: what?
         operator bool() const
         {
             return t_ptr; // TODO: pointing to valid index
@@ -701,19 +704,25 @@ public:
         T& operator*()
         {
             // TODO: does this need to be a valid (non-null) Iterator?
-            return *t_ptr;
+            //aka do I need to assert the above?
+            return m_vector.at(m_position);
         }
     private:
         template<typename, typename, typename> friend class Vector;
+        //TODO: should we take an iterator or a pointer
         T* t_ptr { nullptr }; //TODO: position replace?
-        size_t position; //TODO: replace with reference to vector
+        size_t m_position { 0 };
         
-        Iterator(T* position)
-        {
-            t_ptr = position;
-        }
+        //TODO: WeakHashMapIteratorBase has map as const, should this be?
+        //see WeakHashMap line 123
+        const T& m_vector;
+        
+        //TODO: should this take in position?
+        Iterator(Vector& vector, size_t position) : m_vector { vector }, m_position { position }
         
         //TODO: constructor for iterator taking in main objest (*this)
+        //uhhhh is this what I meant?
+        Iterator() : m_vector { *this }
     }
     
     // TODO: rbegin is one past end, rend is begin, does ++ just work as --?
@@ -723,10 +732,7 @@ public:
         template<typename, typename, typename> friend class Vector;
         T* t_ptr { nullptr };
         
-        Iterator(T* position)
-        {
-            t_ptr = position;
-        }
+        
     }
     Vector()
     {
