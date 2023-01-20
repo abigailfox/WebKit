@@ -684,8 +684,7 @@ public:
     public:
         Iterator& operator++()
         {
-            //TODO: can you increment the end iterator
-            ASSERT(m_vector.size() < position)
+            RELEASE_ASSERT(m_vector.size() > m_position)
             t_ptr++;
         }
         bool operator==(Iterator rhs) const
@@ -694,17 +693,16 @@ public:
         }
         bool operator!=(Iterator rhs) const
         {
-            return !(m_position == rhs.m_position);
+            return m_position != rhs.m_position;
         }
         //TODO: what?
         operator bool() const
         {
-            return t_ptr; // TODO: pointing to valid index
+            //TODO: WHAT IS THIS WHY IS THIS WHY WHY WHYYYYYY
         }
         T& operator*()
         {
-            // TODO: does this need to be a valid (non-null) Iterator?
-            //aka do I need to assert the above?
+            RELEASE_ASSERT(m_position < m_vector.size())
             return m_vector.at(m_position);
         }
     private:
@@ -720,7 +718,7 @@ public:
         //TODO: should this take in position?
         Iterator(Vector& vector, size_t position) : m_vector { vector }, m_position { position }
         
-        //TODO: constructor for iterator taking in main objest (*this)
+        //TODO: constructor for iterator taking in main object (*this)
         //uhhhh is this what I meant?
         Iterator() : m_vector { *this }
     }
