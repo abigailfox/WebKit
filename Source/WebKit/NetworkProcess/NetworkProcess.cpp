@@ -404,6 +404,7 @@ void NetworkProcess::createNetworkConnectionToWebProcess(ProcessIdentifier ident
 
 void NetworkProcess::addAllowedFirstPartyForCookies(WebCore::ProcessIdentifier processIdentifier, WebCore::RegistrableDomain&& firstPartyForCookies, LoadedWebArchive loadedWebArchive, CompletionHandler<void()>&& completionHandler)
 {
+    WTFLogAlways("ABIGAIL: new cooky!! %llu", processIdentifier.toUInt64());
     if (!HashSet<WebCore::RegistrableDomain>::isValidValue(firstPartyForCookies))
         return completionHandler();
 

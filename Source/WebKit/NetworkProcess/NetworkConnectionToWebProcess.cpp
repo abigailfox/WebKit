@@ -1331,9 +1331,18 @@ void NetworkConnectionToWebProcess::establishSWServerConnection()
 
 void NetworkConnectionToWebProcess::establishSWContextConnection(WebPageProxyIdentifier webPageProxyID, RegistrableDomain&& registrableDomain, std::optional<ScriptExecutionContextIdentifier> serviceWorkerPageIdentifier, CompletionHandler<void()>&& completionHandler)
 {
+    
+    //TODO: where processed created, where told to allow cooky for web process,
+    //when first start dealing w 25 or whatever should be allowed
+    //how firstpartyforcookies received when setting up
     auto* session = networkSession();
     if (auto* swServer = session ? session->swServer() : nullptr) {
+        WTFLogAlways("ABIGAIL: process identifier: %llu", webProcessIdentifier().toUInt64());
+        WTFLogAlways("ABIGAIL: process identifier: %s", registrableDomain.string().utf8().data());
+        WTFLogAlways("ABIGAIL: allow cooky: %d", session->networkProcess().allowsFirstPartyForCookies(webProcessIdentifier(), registrableDomain));
         NETWORK_PROCESS_MESSAGE_CHECK(session->networkProcess().allowsFirstPartyForCookies(webProcessIdentifier(), registrableDomain));
+        //service worker permanently granted permission
+        WTFLogAlways("ABIGAIL: i survived the message check");
         m_swContextConnection = makeUnique<WebSWServerToContextConnection>(*this, webPageProxyID, WTFMove(registrableDomain), serviceWorkerPageIdentifier, *swServer);
     }
     completionHandler();
