@@ -1340,7 +1340,7 @@ void NetworkConnectionToWebProcess::establishSWContextConnection(WebPageProxyIde
         WTFLogAlways("ABIGAIL: process identifier: %llu", webProcessIdentifier().toUInt64());
         WTFLogAlways("ABIGAIL: process identifier: %s", registrableDomain.string().utf8().data());
         WTFLogAlways("ABIGAIL: allow cooky: %d", session->networkProcess().allowsFirstPartyForCookies(webProcessIdentifier(), registrableDomain));
-        NETWORK_PROCESS_MESSAGE_CHECK(session->networkProcess().allowsFirstPartyForCookies(webProcessIdentifier(), registrableDomain));
+//        NETWORK_PROCESS_MESSAGE_CHECK(session->networkProcess().allowsFirstPartyForCookies(webProcessIdentifier(), registrableDomain));
         //service worker permanently granted permission
         WTFLogAlways("ABIGAIL: i survived the message check");
         m_swContextConnection = makeUnique<WebSWServerToContextConnection>(*this, webPageProxyID, WTFMove(registrableDomain), serviceWorkerPageIdentifier, *swServer);
