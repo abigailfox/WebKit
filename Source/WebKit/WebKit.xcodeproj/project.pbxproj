@@ -181,6 +181,8 @@
 		0FFED98E23A3200A00EEF459 /* WKWebViewIOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FFED98C23A3200400EEF459 /* WKWebViewIOS.h */; };
 		0FFED99323A3203D00EEF459 /* WKWebViewMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 0FFED99023A3203800EEF459 /* WKWebViewMac.h */; };
 		15739BBD1B42042D00D258C1 /* WebUserMediaClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A410F4919AF7B80002EBAB5 /* WebUserMediaClient.h */; };
+		15D096E12ACCC20B004BF489 /* AuthenticationServicesSoftLink.mm in Sources */ = {isa = PBXBuildFile; fileRef = 15D096E02ACCC20B004BF489 /* AuthenticationServicesSoftLink.mm */; };
+		15FFD7B82ABA4BD0008B8CDA /* AuthenticationServicesSoftLink.h in Headers */ = {isa = PBXBuildFile; fileRef = 15FFD7B72ABA4BD0008B8CDA /* AuthenticationServicesSoftLink.h */; };
 		1A002D43196B337000B9AD44 /* _WKSessionStateInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A002D42196B337000B9AD44 /* _WKSessionStateInternal.h */; };
 		1A002D44196B338900B9AD44 /* _WKSessionState.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A002D3F196B329400B9AD44 /* _WKSessionState.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1A002D49196B345D00B9AD44 /* SessionStateCoding.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A002D47196B345D00B9AD44 /* SessionStateCoding.h */; };
@@ -3139,6 +3141,8 @@
 		118502632673B0DA00A6425E /* XRDeviceIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRDeviceIdentifier.h; sourceTree = "<group>"; };
 		118502642673B0DA00A6425E /* XRDeviceInfo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = XRDeviceInfo.cpp; sourceTree = "<group>"; };
 		118502652673B0DA00A6425E /* XRDeviceInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XRDeviceInfo.h; sourceTree = "<group>"; };
+		15D096E02ACCC20B004BF489 /* AuthenticationServicesSoftLink.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AuthenticationServicesSoftLink.mm; sourceTree = "<group>"; };
+		15FFD7B72ABA4BD0008B8CDA /* AuthenticationServicesSoftLink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthenticationServicesSoftLink.h; sourceTree = "<group>"; };
 		1A002D3E196B329400B9AD44 /* _WKSessionState.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = _WKSessionState.mm; sourceTree = "<group>"; };
 		1A002D3F196B329400B9AD44 /* _WKSessionState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKSessionState.h; sourceTree = "<group>"; };
 		1A002D42196B337000B9AD44 /* _WKSessionStateInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _WKSessionStateInternal.h; sourceTree = "<group>"; };
@@ -11477,6 +11481,8 @@
 				572EBBD82538F6A1000552B3 /* AppAttestInternalSoftLink.mm */,
 				57FABB102581827C0059DC95 /* AuthenticationServicesCoreSoftLink.h */,
 				57FABB112581827C0059DC95 /* AuthenticationServicesCoreSoftLink.mm */,
+				15FFD7B72ABA4BD0008B8CDA /* AuthenticationServicesSoftLink.h */,
+				15D096E02ACCC20B004BF489 /* AuthenticationServicesSoftLink.mm */,
 				5777398F258037430059348B /* AuthenticatorPresenterCoordinator.h */,
 				57773990258037430059348B /* AuthenticatorPresenterCoordinator.mm */,
 				526C5718284AD09500E08955 /* CcidConnection.h */,
@@ -14704,6 +14710,7 @@
 				512F58A312A883AD00629530 /* AuthenticationManagerMessages.h in Headers */,
 				57FABB122581827C0059DC95 /* AuthenticationServicesCoreSoftLink.h in Headers */,
 				57FABB0F25817CF00059DC95 /* AuthenticationServicesCoreSPI.h in Headers */,
+				15FFD7B82ABA4BD0008B8CDA /* AuthenticationServicesSoftLink.h in Headers */,
 				57DCEDB1214C60480016B847 /* Authenticator.h in Headers */,
 				57DCEDAF214C603B0016B847 /* AuthenticatorManager.h in Headers */,
 				57773991258037430059348B /* AuthenticatorPresenterCoordinator.h in Headers */,
@@ -17639,6 +17646,7 @@
 				CD4570D3244113B500A3DCEB /* AudioSessionRoutingArbitratorProxyMessageReceiver.cpp in Sources */,
 				512F58A212A883AD00629530 /* AuthenticationManagerMessageReceiver.cpp in Sources */,
 				57FABB132581827C0059DC95 /* AuthenticationServicesCoreSoftLink.mm in Sources */,
+				15D096E12ACCC20B004BF489 /* AuthenticationServicesSoftLink.mm in Sources */,
 				52EDB40328C2B8DD002DCF33 /* AuthenticatorManager.cpp in Sources */,
 				9955A6F41C7986DC00EB6A93 /* AutomationBackendDispatchers.cpp in Sources */,
 				99249AD51F1F1E5600B62FBB /* AutomationFrontendDispatchers.cpp in Sources */,
