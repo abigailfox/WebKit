@@ -29,6 +29,7 @@
 #import "config.h"
 #import "WebAuthenticatorCoordinatorProxy.h"
 
+//TODO: remove this hack
 IGNORE_WARNINGS_BEGIN("objc-property-no-attribute")
 #import <AuthenticationServices/AuthenticationServices.h>
 IGNORE_WARNINGS_END
@@ -37,6 +38,7 @@ IGNORE_WARNINGS_END
 #import "Logging.h"
 #import "PageClient.h"
 #import "WKError.h"
+#import "_WKWebAuthenticationPanel.h"
 #import "WebAuthenticationRequestData.h"
 #import "WebPageProxy.h"
 #import <WebCore/AuthenticatorAttachment.h>
@@ -247,12 +249,8 @@ static RetainPtr<ASCCredentialRequestContext> configureRegistrationRequestContex
     setGlobalFrameIDForContext(requestContext, globalFrameID);
 
     auto provider = adoptNS([[ASAuthorizationPlatformPublicKeyCredentialProvider alloc] initWithRelyingPartyIdentifier:*options.rp.id]);
-    auto credentialCreationOptions = adoptNS([provider createCredentialRegistrationRequestWithChallenge:toNSData(options.challenge) name:toNSData(options.rp.name) userID:options.user]);
+    auto credentialCreationOptions = adoptNS([provider createCredentialRegistrationRequestWithChallenge:toNSData(options.challenge).get() name:options.rp.name userID:toNSData(options.user.id).get()]);
 
-    if ([credentialCreationOptions respondsToSelector:@selector(setClientDataHash:)])
-        [credentialCreationOptions setClientDataHash:toNSData(hash).get()];
-    else
-        [credentialCreationOptions setChallenge:WebCore::toNSData(options.challenge).get()];
     [credentialCreationOptions setRelyingPartyIdentifier:*options.rp.id];
     [credentialCreationOptions setUserName:options.user.name];
     [credentialCreationOptions setUserIdentifier:WebCore::toNSData(options.user.id).get()];
