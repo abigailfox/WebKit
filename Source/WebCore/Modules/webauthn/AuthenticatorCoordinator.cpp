@@ -101,6 +101,7 @@ void AuthenticatorCoordinator::setClient(std::unique_ptr<AuthenticatorCoordinato
 
 void AuthenticatorCoordinator::create(const Document& document, CredentialCreationOptions&& createOptions, WebAuthn::Scope scope, RefPtr<AbortSignal>&& abortSignal, CredentialPromise&& promise)
 {
+    WTFLogAlways("ABIGAIL: AuthenticatorCoordinator::create");
     using namespace AuthenticatorCoordinatorInternal;
 
     const auto& callerOrigin = document.securityOrigin();
@@ -180,6 +181,7 @@ void AuthenticatorCoordinator::create(const Document& document, CredentialCreati
 
     auto callback = [weakThis = WeakPtr { *this }, clientDataJson = WTFMove(clientDataJson), promise = WTFMove(promise), abortSignal = WTFMove(abortSignal)] (AuthenticatorResponseData&& data, AuthenticatorAttachment attachment, ExceptionData&& exception) mutable {
         if (abortSignal && abortSignal->aborted()) {
+            WTFLogAlways("ABIGAIL: callback abortSignal");
             promise.reject(Exception { ExceptionCode::AbortError, "Aborted by AbortSignal."_s });
             return;
         }
@@ -252,6 +254,7 @@ void AuthenticatorCoordinator::discoverFromExternalSource(const Document& docume
     }
 
     if (requestOptions.signal) {
+        WTFLogAlways("ABIGAIL: requestOptions.signal");
         requestOptions.signal->addAlgorithm([weakThis = WeakPtr { *this }](JSC::JSValue) {
             if (!weakThis)
                 return;
@@ -261,6 +264,7 @@ void AuthenticatorCoordinator::discoverFromExternalSource(const Document& docume
 
     auto callback = [weakThis = WeakPtr { *this }, clientDataJson = WTFMove(clientDataJson), promise = WTFMove(promise), abortSignal = WTFMove(requestOptions.signal)] (AuthenticatorResponseData&& data, AuthenticatorAttachment attachment, ExceptionData&& exception) mutable {
         if (abortSignal && abortSignal->aborted()) {
+            WTFLogAlways("ABIGAIL: external source abortSignal");
             promise.reject(Exception { ExceptionCode::AbortError, "Aborted by AbortSignal."_s });
             return;
         }

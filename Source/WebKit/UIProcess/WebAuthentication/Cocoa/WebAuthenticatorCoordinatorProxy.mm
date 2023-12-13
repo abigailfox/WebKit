@@ -896,6 +896,7 @@ void WebAuthenticatorCoordinatorProxy::isUserVerifyingPlatformAuthenticatorAvail
 
 void WebAuthenticatorCoordinatorProxy::cancel()
 {
+    WTFLogAlways("ABIGAIL: WebAuthenticatorCoordinatorProxy::cancel()");
     if (m_proxy) {
         [m_proxy cancelCurrentRequest];
         m_proxy.clear();
