@@ -131,6 +131,19 @@ private:
     explicit KeyAgreementResponse(Ref<WebCore::CryptoKeyEC>&&);
 };
 
+struct SetPinRequest {
+
+private:
+    String m_newPinUnicode;
+    uint64_t m_platformMinPINLengthInCodePoints;
+    String m_newPin;
+};
+
+struct SetPinResponse {
+
+private:
+};
+
 // TokenRequest requests a pin-token from an authenticator. These tokens can be
 // used to show user-verification in other operations, e.g. when getting an
 // assertion.
