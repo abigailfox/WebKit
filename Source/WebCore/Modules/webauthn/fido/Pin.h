@@ -132,16 +132,40 @@ private:
 };
 
 struct SetPinRequest {
+public:
+    WEBCORE_EXPORT const WebCore::CryptoKeyAES& sharedKey() const; //TODO: ?
+    WEBCORE_EXPORT static std::optional<SetPinRequest> tryCreate(const String newPin, const WebCore::CryptoKeyEC&); //TODO: ?
 
 private:
     String m_newPinUnicode;
-    uint64_t m_platformMinPINLengthInCodePoints;
-    String m_newPin;
+    
+    SetPinRequest(String newPinUnicode);
 };
 
 struct SetPinResponse {
+public:
+    WEBCORE_EXPORT static std::optional<SetPinResponse> parse(const WebCore::CryptoKeyAES& sharedKey, const Vector<uint8_t>& inBuffer); //TODO: first parameter?
 
 private:
+    SetPinResponse();
+};
+
+struct ChangePinRequest {
+public:
+    WEBCORE_EXPORT const WebCore::CryptoKeyAES& sharedKey() const; //TODO: ?
+    WEBCORE_EXPORT static std::optional<ChangePinRequest> tryCreate(const String newPin, const WebCore::CryptoKeyEC&); //TODO: ?
+
+private:
+    String m_newPinUnicode;
+    String m_curPinUnicode;
+    
+    ChangePinRequest(String newPinUnicode);
+};
+
+struct ChangePinResponse {
+
+private:
+    ChangePinResponse();
 };
 
 // TokenRequest requests a pin-token from an authenticator. These tokens can be

@@ -280,6 +280,43 @@ const CryptoKeyAES& TokenRequest::sharedKey() const
     return m_sharedKey;
 }
 
+SetPinRequest::SetPinRequest(String newPin) {
+    m_newPin = newPin;
+}
+
+WEBCORE_EXPORT static std::optional<SetPinResponse> SetPinResponse::parse(const WebCore::CryptoKeyAES& sharedKey, const Vector<uint8_t>& inBuffer) {
+    
+    //if missing mandatory parameters: CTAP2_ERR_MISSING_PARAMETER
+    //if PIN already set: CTAP2_ERR_PIN_AUTH_INVALID
+    
+    
+}
+
+WEBCORE_EXPORT static std::optional<SetPinRequest> SetPinRequest::tryCreate(const String newPin, const WebCore::CryptoKeyEC& peerKey) {
+    if (newPin.length() < 4) {
+        //pin too short
+        //TODO: how to tell user?
+    }
+    if (newPin.utf8().sizeInBytes() > 63) { //TODO: utf8 vs utf8.data
+        //pin too long
+        //TODO: how to tell user?
+    }
+    auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
+
+    //TODO: send authenticatorClientPIN command
+    //Subcommand::kSetPin
+    //pinUvAuthProtocol
+    //keyAgreement
+    //newPinEnc
+    //pinUvAuthParam
+    //lambdas are back D:
+    Vector<uint8_t> pinCommand = encodePinCommand(Subcommand::kSetPin, [coseKey = WTFMove(sharedSecret.m_coseKey)] mutable {
+        map->emplace(static_cast<int64_t>(RequestKey::kProtocol), kProtocolVersion);
+        map->emplace(static_cast<int64_t>)(RequestKey::kKeyAgreement), WTFMove(coseKey));
+        
+    });
+}
+
 Vector<uint8_t> encodeAsCBOR(const TokenRequest& request)
 {
     auto result = CryptoAlgorithmAESCBC::platformEncrypt({ }, request.sharedKey(), request.m_pinHash, CryptoAlgorithmAESCBC::Padding::No);
