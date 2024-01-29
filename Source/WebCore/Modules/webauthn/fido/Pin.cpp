@@ -303,6 +303,12 @@ WEBCORE_EXPORT static std::optional<SetPinRequest> SetPinRequest::tryCreate(cons
     }
     auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
 
+    //TODO: I think I need to pad the pin to 64 bytes myself before calling encrypt
+    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, sharedSecret.sharedKey(), sharedSecret.m_pinHash, CryptoAlgorithmAESCBC::Padding::No);
+    
+    //TODO: newPinEnc
+    //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
+
     //TODO: send authenticatorClientPIN command
     //Subcommand::kSetPin
     //pinUvAuthProtocol
