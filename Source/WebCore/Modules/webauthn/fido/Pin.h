@@ -135,11 +135,15 @@ struct SetPinRequest {
 public:
     WEBCORE_EXPORT const WebCore::CryptoKeyAES& sharedKey() const; //TODO: ?
     WEBCORE_EXPORT static std::optional<SetPinRequest> tryCreate(const String newPin, const WebCore::CryptoKeyEC&); //TODO: ?
+    
+    friend Vector<uint8_t> encodeAsCBOR(const SetPinRequest&);
 
 private:
-    String m_newPinUnicode;
+    Ref<WebCore::CryptoKeyAES> m_sharedKey;
+    mutable cbor::CBORValue::MapValue m_coseKey;
+    Vector<uint8_t> m_pinHash; // TODO: Only the left 16 bytes are kept, why?
     
-    SetPinRequest(String newPinUnicode);
+    SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& pinHash);
 };
 
 struct SetPinResponse {
@@ -214,6 +218,7 @@ private:
 WEBCORE_EXPORT Vector<uint8_t> encodeAsCBOR(const RetriesRequest&);
 WEBCORE_EXPORT Vector<uint8_t> encodeAsCBOR(const KeyAgreementRequest&);
 WEBCORE_EXPORT Vector<uint8_t> encodeAsCBOR(const TokenRequest&);
+WEBCORE_EXPORT Vector<uint8_t> encodeAsCBOR(const SetPinRequest&);
 
 } // namespace pin
 } // namespace fido

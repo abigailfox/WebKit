@@ -280,31 +280,39 @@ const CryptoKeyAES& TokenRequest::sharedKey() const
     return m_sharedKey;
 }
 
-SetPinRequest::SetPinRequest(String newPin) {
-    m_newPin = newPin;
+SetPinRequest::SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& pinHash)
+    : m_sharedKey(WTFMove(sharedKey))
+    , m_coseKey(WTFMove(coseKey))
+    , m_pinHash(WTFMove(pinHash))
+{
+}
+WEBCORE_EXPORT const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const {
+	return m_sharedKey;
 }
 
-WEBCORE_EXPORT static std::optional<SetPinResponse> SetPinResponse::parse(const WebCore::CryptoKeyAES& sharedKey, const Vector<uint8_t>& inBuffer) {
-    
-    //if missing mandatory parameters: CTAP2_ERR_MISSING_PARAMETER
-    //if PIN already set: CTAP2_ERR_PIN_AUTH_INVALID
-    
-    
-}
+//WEBCORE_EXPORT std::optional<SetPinResponse> SetPinResponse::parse(const WebCore::CryptoKeyAES& sharedKey, const Vector<uint8_t>& inBuffer) {
+//    
+//    //if missing mandatory parameters: CTAP2_ERR_MISSING_PARAMETER
+//    //if PIN already set: CTAP2_ERR_PIN_AUTH_INVALID
+//
+//}
 
-WEBCORE_EXPORT static std::optional<SetPinRequest> SetPinRequest::tryCreate(const String newPin, const WebCore::CryptoKeyEC& peerKey) {
-    if (newPin.length() < 4) {
+//TODO: is it okay that this is a CString not String?
+WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const String newPin, const WebCore::CryptoKeyEC& peerKey) {
+    if (!hasAtLeastFourCodepoints(newPin)) {
         //pin too short
         //TODO: how to tell user?
     }
-    if (newPin.utf8().sizeInBytes() > 63) { //TODO: utf8 vs utf8.data
+    if (newPin.sizeInBytes() > 63) { //TODO: utf8 vs utf8.data
         //pin too long
         //TODO: how to tell user?
     }
     auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
 
     //TODO: I think I need to pad the pin to 64 bytes myself before calling encrypt
-    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, sharedSecret.sharedKey(), sharedSecret.m_pinHash, CryptoAlgorithmAESCBC::Padding::No);
+    newPin = makeString(pad('0x00', 64, newPin));
+	WTFLogAlways("ABIGAIL: newPin length %d", newPin.sizeInBytes());
+    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, sharedSecret.sharedKey(), newPin, CryptoAlgorithmAESCBC::Padding::No);
     
     //TODO: newPinEnc
     //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
@@ -315,7 +323,7 @@ WEBCORE_EXPORT static std::optional<SetPinRequest> SetPinRequest::tryCreate(cons
     //keyAgreement
     //newPinEnc
     //pinUvAuthParam
-    //lambdas are back D:
+    //TODO: probably doing this wrong? maybe call CBOR method, hard to tell
     Vector<uint8_t> pinCommand = encodePinCommand(Subcommand::kSetPin, [coseKey = WTFMove(sharedSecret.m_coseKey)] mutable {
         map->emplace(static_cast<int64_t>(RequestKey::kProtocol), kProtocolVersion);
         map->emplace(static_cast<int64_t>)(RequestKey::kKeyAgreement), WTFMove(coseKey));
@@ -329,6 +337,17 @@ Vector<uint8_t> encodeAsCBOR(const TokenRequest& request)
     ASSERT(!result.hasException());
 
     return encodePinCommand(Subcommand::kGetPinToken, [coseKey = WTFMove(request.m_coseKey), encryptedPin = result.releaseReturnValue()] (CBORValue::MapValue* map) mutable {
+        map->emplace(static_cast<int64_t>(RequestKey::kKeyAgreement), WTFMove(coseKey));
+        map->emplace(static_cast<int64_t>(RequestKey::kPinHashEnc), WTFMove(encryptedPin));
+    });
+}
+
+Vector<uint8_t> encodeAsCBOR(const SetPinRequest& request)
+{
+    auto result = CryptoAlgorithmAESCBC::platformEncrypt({ }, request.sharedKey(), request.m_pinHash, CryptoAlgorithmAESCBC::Padding::No);
+    ASSERT(!result.hasException());
+
+    return encodePinCommand(Subcommand::kSetPin, [coseKey = WTFMove(request.m_coseKey), encryptedPin = result.releaseReturnValue()] (CBORValue::MapValue* map) mutable {
         map->emplace(static_cast<int64_t>(RequestKey::kKeyAgreement), WTFMove(coseKey));
         map->emplace(static_cast<int64_t>(RequestKey::kPinHashEnc), WTFMove(encryptedPin));
     });
