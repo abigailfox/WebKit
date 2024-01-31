@@ -300,7 +300,7 @@ void CtapAuthenticator::continueGetKeyAgreementAfterGetRetries(Vector<uint8_t>&&
         weakThis->continueRequestPinAfterGetKeyAgreement(WTFMove(data), retries);
     });
 }
-
+//TODO: mimic me
 void CtapAuthenticator::continueRequestPinAfterGetKeyAgreement(Vector<uint8_t>&& data, uint64_t retries)
 {
     auto keyAgreement = pin::KeyAgreementResponse::parse(data);
