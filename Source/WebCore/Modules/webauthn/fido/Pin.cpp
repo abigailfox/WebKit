@@ -280,17 +280,11 @@ const CryptoKeyAES& TokenRequest::sharedKey() const
     return m_sharedKey;
 }
 
-<<<<<<< HEAD
-SetPinRequest::SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& pinHash)
-    : m_sharedKey(WTFMove(sharedKey))
-    , m_coseKey(WTFMove(coseKey))
-    , m_pinHash(WTFMove(pinHash))
-=======
+
 SetPinRequest::SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& paddedPin)
     : m_sharedKey(WTFMove(sharedKey))
     , m_coseKey(WTFMove(coseKey))
     , m_paddedPin(WTFMove(paddedPin))
->>>>>>> eff3f156db27 (test start)
 {
 }
 WEBCORE_EXPORT const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const {
@@ -304,20 +298,10 @@ WEBCORE_EXPORT const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const {
 //
 //}
 
-//TODO: is it okay that this is a CString not String?
-<<<<<<< HEAD
-WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const String newPin, const WebCore::CryptoKeyEC& peerKey) {
-=======
-WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(String& newPin, const WebCore::CryptoKeyEC& peerKey) {
->>>>>>> eff3f156db27 (test start)
-    if (!hasAtLeastFourCodepoints(newPin)) {
-        //pin too short
-        //TODO: how to tell user?
-    }
-    if (newPin.sizeInBytes() > 63) { //TODO: utf8 vs utf8.data
-        //pin too long
-        //TODO: how to tell user?
-    }
+//TODO: what is the desirable string type here?
+WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const String& inputPin, const WebCore::CryptoKeyEC& peerKey) {
+
+	CString newPin = validateAndConvertToUTF8(inputPin); //TODO: needs to be adapted for useful error reporting
     //TODO: cannot do this, need to copy code from Token Request
     //auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
     
@@ -348,17 +332,13 @@ WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(String& new
     //TODO: how to get HMAC w/o TokenResponse? -> somewhere from above (check TokenRequest)
 
     //TODO: I think I need to pad the pin to 64 bytes myself before calling encrypt
-<<<<<<< HEAD
-    newPin = makeString(pad('0x00', 64, newPin));
-	WTFLogAlways("ABIGAIL: newPin length %d", newPin.sizeInBytes());
-    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, sharedSecret.sharedKey(), newPin, CryptoAlgorithmAESCBC::Padding::No);
-=======
+
     //newPin = makeString(pad('0x00', 64, newPin));
     Vector<uint8_t> paddedPin;
     paddedPin.fill('\0', 64);
     memcpy(&paddedPin, newPin.utf8().data(), newPin.sizeInBytes());
 	WTFLogAlways("ABIGAIL: newPin length %d", newPin.sizeInBytes());
-    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, sharedSecret->sharedKey(), paddedPin, CryptoAlgorithmAESCBC::Padding::No);
+    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
     
     //TODO: newPinEnc
     //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
@@ -375,8 +355,7 @@ WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(String& new
 //        map->emplace(static_cast<int64_t>(RequestKey::kKeyAgreement), WTFMove(coseKey));
 //        
 //    });
-    return SetPinRequest(peerKey, WTFMove(coseKey), WTFMove(paddedPin));
->>>>>>> eff3f156db27 (test start)
+    return SetPinRequest(sharedKey.releaseNonNull(), WTFMove(coseKey), WTFMove(paddedPin));
 }
 
 Vector<uint8_t> encodeAsCBOR(const TokenRequest& request)
@@ -391,12 +370,8 @@ Vector<uint8_t> encodeAsCBOR(const TokenRequest& request)
 }
 
 Vector<uint8_t> encodeAsCBOR(const SetPinRequest& request)
-{
-<<<<<<< HEAD
-    auto result = CryptoAlgorithmAESCBC::platformEncrypt({ }, request.sharedKey(), request.m_pinHash, CryptoAlgorithmAESCBC::Padding::No);
-=======
+
     auto result = CryptoAlgorithmAESCBC::platformEncrypt({ }, request.sharedKey(), request.m_paddedPin, CryptoAlgorithmAESCBC::Padding::No);
->>>>>>> eff3f156db27 (test start)
     ASSERT(!result.hasException());
 
     return encodePinCommand(Subcommand::kSetPin, [coseKey = WTFMove(request.m_coseKey), encryptedPin = result.releaseReturnValue()] (CBORValue::MapValue* map) mutable {

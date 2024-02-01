@@ -134,26 +134,16 @@ private:
 struct SetPinRequest {
 public:
     WEBCORE_EXPORT const WebCore::CryptoKeyAES& sharedKey() const; //TODO: ?
-<<<<<<< HEAD
-    WEBCORE_EXPORT static std::optional<SetPinRequest> tryCreate(const String newPin, const WebCore::CryptoKeyEC&); //TODO: ?
-=======
-    WEBCORE_EXPORT static std::optional<SetPinRequest> tryCreate(String& newPin, const WebCore::CryptoKeyEC&); //TODO: ?
->>>>>>> eff3f156db27 (test start)
+    WEBCORE_EXPORT static std::optional<SetPinRequest> tryCreate(const String& newPin, const WebCore::CryptoKeyEC&); //TODO: ?
     
     friend Vector<uint8_t> encodeAsCBOR(const SetPinRequest&);
 
 private:
     Ref<WebCore::CryptoKeyAES> m_sharedKey;
     mutable cbor::CBORValue::MapValue m_coseKey;
-<<<<<<< HEAD
-    Vector<uint8_t> m_pinHash; // TODO: Only the left 16 bytes are kept, why?
-    
-    SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& pinHash);
-=======
     Vector<uint8_t> m_paddedPin;
     
-    SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t> paddedPin);
->>>>>>> eff3f156db27 (test start)
+    SetPinRequest(Ref<WebCore::CryptoKeyAES>&& sharedKey, cbor::CBORValue::MapValue&& coseKey, Vector<uint8_t>&& paddedPin);
 };
 
 struct SetPinResponse {
@@ -167,7 +157,7 @@ private:
 struct ChangePinRequest {
 public:
     WEBCORE_EXPORT const WebCore::CryptoKeyAES& sharedKey() const; //TODO: ?
-    WEBCORE_EXPORT static std::optional<ChangePinRequest> tryCreate(const String newPin, const WebCore::CryptoKeyEC&); //TODO: ?
+    WEBCORE_EXPORT static std::optional<ChangePinRequest> tryCreate(const String inputPin, const WebCore::CryptoKeyEC&); //TODO: ?
 
 private:
     String m_newPinUnicode;
