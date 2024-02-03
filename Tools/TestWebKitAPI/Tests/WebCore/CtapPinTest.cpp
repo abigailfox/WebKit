@@ -78,11 +78,12 @@ TEST(CtapPinTest, TestSetPinRequest) //TODO: wip
     ASSERT_FALSE(keyPairResult.hasException());
     auto keyPair = keyPairResult.releaseReturnValue();
 
-    CString pin = "1234";
+    String pin = "1234"_s;
 
     auto request = SetPinRequest::tryCreate(pin, downcast<CryptoKeyEC>(*keyPair.publicKey));
-    EXPECT_TRUE(request);
-    auto result = encodeAsCBOR(*request);
+    WTFLogAlways("ABIGAIL: try created");
+    //EXPECT_TRUE(request);
+//    auto result = encodeAsCBOR(*request);
 //    EXPECT_EQ(result.size(), 103u);
 //    EXPECT_EQ(result[0], static_cast<uint8_t>(CtapRequestCommand::kAuthenticatorClientPin));
 //

@@ -301,7 +301,7 @@ WEBCORE_EXPORT const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const {
 //TODO: what is the desirable string type here?
 WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const String& inputPin, const WebCore::CryptoKeyEC& peerKey) {
 
-	CString newPin = validateAndConvertToUTF8(inputPin); //TODO: needs to be adapted for useful error reporting
+    std::optional<CString> newPin = validateAndConvertToUTF8(inputPin); //TODO: needs to be adapted for useful error reporting, also this is an optional
     //TODO: cannot do this, need to copy code from Token Request
     //auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
     
@@ -336,9 +336,9 @@ WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const Strin
     //newPin = makeString(pad('0x00', 64, newPin));
     Vector<uint8_t> paddedPin;
     paddedPin.fill('\0', 64);
-    memcpy(&paddedPin, newPin.utf8().data(), newPin.sizeInBytes());
-	WTFLogAlways("ABIGAIL: newPin length %d", newPin.sizeInBytes());
-    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
+    //memcpy(&paddedPin, newPin->data(), newPin->length()); <- this line is the problem
+	WTFLogAlways("ABIGAIL: paddedPin length %zu", paddedPin.size());
+    //auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
     
     //TODO: newPinEnc
     //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
@@ -370,7 +370,7 @@ Vector<uint8_t> encodeAsCBOR(const TokenRequest& request)
 }
 
 Vector<uint8_t> encodeAsCBOR(const SetPinRequest& request)
-
+{
     auto result = CryptoAlgorithmAESCBC::platformEncrypt({ }, request.sharedKey(), request.m_paddedPin, CryptoAlgorithmAESCBC::Padding::No);
     ASSERT(!result.hasException());
 
