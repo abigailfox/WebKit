@@ -82,7 +82,7 @@ TEST(CtapPinTest, TestSetPinRequest) //TODO: wip
 
     auto request = SetPinRequest::tryCreate(pin, downcast<CryptoKeyEC>(*keyPair.publicKey));
     WTFLogAlways("ABIGAIL: try created");
-    //EXPECT_TRUE(request);
+    EXPECT_TRUE(request);
 //    auto result = encodeAsCBOR(*request);
 //    EXPECT_EQ(result.size(), 103u);
 //    EXPECT_EQ(result[0], static_cast<uint8_t>(CtapRequestCommand::kAuthenticatorClientPin));

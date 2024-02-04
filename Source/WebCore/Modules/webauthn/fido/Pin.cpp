@@ -302,8 +302,6 @@ WEBCORE_EXPORT const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const {
 WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const String& inputPin, const WebCore::CryptoKeyEC& peerKey) {
 
     std::optional<CString> newPin = validateAndConvertToUTF8(inputPin); //TODO: needs to be adapted for useful error reporting, also this is an optional
-    //TODO: cannot do this, need to copy code from Token Request
-    //auto sharedSecret = TokenRequest::tryCreate(newPin.utf8(), peerKey);
     
     // The following implements Section 5.5.4 Getting sharedSecret from Authenticator.
     // https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#gettingSharedSecret
@@ -329,19 +327,23 @@ WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const Strin
     ASSERT(!rawPublicKeyResult.hasException());
     auto coseKey = encodeCOSEPublicKey(rawPublicKeyResult.returnValue());
 
-    //TODO: how to get HMAC w/o TokenResponse? -> somewhere from above (check TokenRequest)
-
     //TODO: I think I need to pad the pin to 64 bytes myself before calling encrypt
 
     //newPin = makeString(pad('0x00', 64, newPin));
     Vector<uint8_t> paddedPin;
     paddedPin.fill('\0', 64);
-    //memcpy(&paddedPin, newPin->data(), newPin->length()); <- this line is the problem
+    memcpy(paddedPin.begin(), newPin->data(), newPin->length()); //<- this line is the problem
 	WTFLogAlways("ABIGAIL: paddedPin length %zu", paddedPin.size());
-    //auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
-    
-    //TODO: newPinEnc
+    ASSERT(*paddedPin.begin() == newPin->data()[0]);
+    auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
+
     //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
+    //TODO: how to get HMAC w/o TokenResponse? -> somewhere from above (check TokenRequest)
+    //could i use the sign from CryptoAlgorithmECDSA? CryptoAlgorithmECDSA::sign
+    //TODO: i do not understand this lol...do i just decrypt the thing i just encrypted....
+//    auto tokenKey = CryptoKeyHMAC::importRaw(newPinEnc.size() * 8, CryptoAlgorithmIdentifier::SHA_256, WTFMove(newPinEnc), true, CryptoKeyUsageSign); //why size * 8?
+    
+    auto pinUvAuthParam = CryptoAlgorithmHMAC::platformSign(tokenKey, newPinEnc);
 
     //TODO: send authenticatorClientPIN command
     //Subcommand::kSetPin
