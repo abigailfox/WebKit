@@ -336,14 +336,16 @@ WEBCORE_EXPORT std::optional<SetPinRequest> SetPinRequest::tryCreate(const Strin
 	WTFLogAlways("ABIGAIL: paddedPin length %zu", paddedPin.size());
     ASSERT(*paddedPin.begin() == newPin->data()[0]);
     auto newPinEnc = CryptoAlgorithmAESCBC::platformEncrypt({ }, *sharedKey, paddedPin, CryptoAlgorithmAESCBC::Padding::No);
+    ASSERT(!newPinEnc.hasException());
+    WTFLogAlways("ABIGAIL: asserted newPinEnc");
 
     //CryptoAlgorithmHMAC::platformSign(key, data); ? key types don't match
     //TODO: how to get HMAC w/o TokenResponse? -> somewhere from above (check TokenRequest)
     //could i use the sign from CryptoAlgorithmECDSA? CryptoAlgorithmECDSA::sign
     //TODO: i do not understand this lol...do i just decrypt the thing i just encrypted....
-//    auto tokenKey = CryptoKeyHMAC::importRaw(newPinEnc.size() * 8, CryptoAlgorithmIdentifier::SHA_256, WTFMove(newPinEnc), true, CryptoKeyUsageSign); //why size * 8?
+    auto hmacKey = CryptoKeyHMAC::importRaw(sharedKeyHash.size() * 8 /* lengthInBits */, CryptoAlgorithmIdentifier::SHA_256, WTFMove(sharedKeyHash), true, CryptoKeyUsageSign);
     
-    auto pinUvAuthParam = CryptoAlgorithmHMAC::platformSign(tokenKey, newPinEnc);
+    auto pinUvAuthParam = CryptoAlgorithmHMAC::platformSign(*hmacKey, newPinEnc.releaseReturnValue());
 
     //TODO: send authenticatorClientPIN command
     //Subcommand::kSetPin
