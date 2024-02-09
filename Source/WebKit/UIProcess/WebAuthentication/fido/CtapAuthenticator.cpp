@@ -63,6 +63,8 @@ WebAuthenticationStatus toStatus(const CtapDeviceResponseCode& error)
         return WebAuthenticationStatus::PinAuthBlocked;
     case CtapDeviceResponseCode::kCtap2ErrPinBlocked:
         return WebAuthenticationStatus::PinBlocked;
+    case CtapDeviceResponseCode::kCtap2ErrPinRequired:
+        return WebAuthenticationStatus::PinRequired;
     default:
         ASSERT_NOT_REACHED();
         return WebAuthenticationStatus::PinInvalid;
@@ -111,6 +113,10 @@ void CtapAuthenticator::makeCredential()
         cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions);
     else if (m_info.options().clientPinAvailability() == AuthenticatorSupportedOptions::ClientPinAvailability::kSupportedAndPinSet)
         cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions, PinParameters { pin::kProtocolVersion, m_pinAuth });
+    else if (m_info.options().clientPinAvailability() == AuthenticatorSupportedOptions::ClientPinAvailability::kSupportedButPinNotSet) {
+        //TODO: pin not set, do something
+        m_requestType = fido::pin::PinRequestType::kSetPin;
+    }
     else
         cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions);
     driver().transact(WTFMove(cborCmd), [weakThis = WeakPtr { *this }](Vector<uint8_t>&& data) {
@@ -182,6 +188,10 @@ void CtapAuthenticator::getAssertion()
         cborCmd = encodeGetAssertionRequestAsCBOR(requestData().hash, options, internalUVAvailability, authenticatorSupportedExtensions);
     else if (m_info.options().clientPinAvailability() == AuthenticatorSupportedOptions::ClientPinAvailability::kSupportedAndPinSet && options.userVerification != UserVerificationRequirement::Discouraged)
         cborCmd = encodeGetAssertionRequestAsCBOR(requestData().hash, options, internalUVAvailability, authenticatorSupportedExtensions, PinParameters { pin::kProtocolVersion, m_pinAuth });
+    else if (m_info.options().clientPinAvailability() == AuthenticatorSupportedOptions::ClientPinAvailability::kSupportedButPinNotSet) {
+        //TODO: pin not set, do something
+        m_requestType = fido::pin::PinRequestType::kSetPin;
+    }
     else
         cborCmd = encodeGetAssertionRequestAsCBOR(requestData().hash, options, internalUVAvailability, authenticatorSupportedExtensions);
     driver().transact(WTFMove(cborCmd), [weakThis = WeakPtr { *this }](Vector<uint8_t>&& data) {
@@ -311,14 +321,84 @@ void CtapAuthenticator::continueRequestPinAfterGetKeyAgreement(Vector<uint8_t>&&
     }
 
     if (auto* observer = this->observer()) {
-        observer->requestPin(retries, [weakThis = WeakPtr { *this }, keyAgreement = WTFMove(*keyAgreement)] (const String& pin) {
+        observer->requestPin(retries, [weakThis = WeakPtr { *this }, keyAgreement = WTFMove(*keyAgreement), requestType = m_requestType] (const String& pin) {
             RELEASE_ASSERT(RunLoop::isMain());
             if (!weakThis)
                 return;
-            weakThis->continueGetPinTokenAfterRequestPin(pin, keyAgreement.peerKey);
+            if (requestType == fido::pin::PinRequestType::kSetPin)
+                //TODO: insert setPin function here
+                weakThis->continueSetPinAfterRequestPin(pin, keyAgreement.peerKey);
+            else if (requestType == fido::pin::PinRequestType::kGetPinToken)
+                weakThis->continueGetPinTokenAfterRequestPin(pin, keyAgreement.peerKey);
+            else
+                ASSERT_NOT_REACHED();
         });
     }
 }
+
+void CtapAuthenticator::continueSetPinAfterRequestPin(const String& pin, const CryptoKeyEC& peerKey) {
+    if (pin.isNull()) {
+        receiveRespond(ExceptionData { ExceptionCode::UnknownError, "Pin is null."_s });
+        return;
+    }
+    auto pinUTF8 = pin::validateAndConvertToUTF8(pin);
+
+    if (!pinUTF8) {
+        // Fake a pin invalid response from the authenticator such that clients could show some error to the user.
+        if (auto* observer = this->observer())
+            observer->authenticatorStatusUpdated(WebAuthenticationStatus::PinInvalid);
+        tryRestartPin(CtapDeviceResponseCode::kCtap2ErrPinInvalid);
+        return;
+    }
+    auto setPinRequest = fido::pin::SetPinRequest::tryCreate(*pinUTF8, peerKey);
+    
+    auto cborCmd = encodeAsCBOR(*setPinRequest);
+    driver().transact(WTFMove(cborCmd), [weakThis = WeakPtr { *this }, setPinRequest = WTFMove(*setPinRequest)] (Vector<uint8_t>&& data) {
+        ASSERT(RunLoop::isMain());
+        if (!weakThis)
+            return;
+
+        auto response = getResponseCode(data);
+        if (response != CtapDeviceResponseCode::kSuccess) {
+            if (isPinError(response)) {
+                if (auto* observer = weakThis->observer())
+                    observer->authenticatorStatusUpdated(toStatus(response));
+                if (weakThis->tryRestartPin(response))
+                    return;
+            }
+
+            weakThis->receiveRespond(ExceptionData { ExceptionCode::UnknownError, makeString("Unknown internal error. Error code: ", static_cast<uint8_t>(response)) });
+            return;
+        }
+
+    });
+}
+
+//void CtapAuthenticator::continueRequestAfterSetPin(Vector<uint8_t>&& data, const fido::pin::SetPinRequest& setPinRequest)
+//{
+//    auto decodedMap = decodeResponseMap(data);
+//    if (!decodedMap)
+//        return; //or ...?
+//    const auto& responseMap = decodedMap->getMap();
+//
+//    auto it = responseMap.find(cbor::CBORValue(static_cast<int64_t>(fido::pin::RequestKey::kNewPinEnc)));
+//    if (it == responseMap.end() || !it->second.isByteString())
+//        return; //or...?
+//    const auto& newPinEnc = it->second.getByteString();
+//
+//   auto newPinResult = CryptoAlgorithmAESCBC::platformDecrypt({ }, sharedKey, newPinEnc, CryptoAlgorithmAESCBC::Padding::No);
+//
+//    if (newPinResult.hasException())
+//        return; //or...?
+//    auto newPin = newPinResult.releaseReturnValue();
+//
+//    WTF::switchOn(requestData().options, [&](const PublicKeyCredentialCreationOptions& options) {
+//        makeCredential();
+//    }, [&](const PublicKeyCredentialRequestOptions& options) {
+//        getAssertion();
+//    });
+//}
+
 
 void CtapAuthenticator::continueGetPinTokenAfterRequestPin(const String& pin, const CryptoKeyEC& peerKey)
 {
@@ -415,6 +495,13 @@ Vector<AuthenticatorTransport> CtapAuthenticator::transports() const
     
     if (auto& infoTransports = m_info.transports())
         return *infoTransports;
+    return Vector { driver().transport() };
+}
+
+} // namespace WebKit
+
+#endif // ENABLE(WEB_AUTHN)
+
     return Vector { driver().transport() };
 }
 

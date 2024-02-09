@@ -294,12 +294,8 @@ const WebCore::CryptoKeyAES& SetPinRequest::sharedKey() const
     return m_sharedKey;
 }
 
-std::optional<SetPinRequest> SetPinRequest::tryCreate(const String& inputPin, const WebCore::CryptoKeyEC& peerKey)
+std::optional<SetPinRequest> SetPinRequest::tryCreate(const CString& newPin, const WebCore::CryptoKeyEC& peerKey)
 {
-    std::optional<CString> newPin = validateAndConvertToUTF8(inputPin);
-    if (!newPin)
-        return std::nullopt;
-
     // The following implements Section 5.5.4 Getting sharedSecret from Authenticator.
     // https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#gettingSharedSecret
     // 1. Generate a P256 key pair.
@@ -327,7 +323,7 @@ std::optional<SetPinRequest> SetPinRequest::tryCreate(const String& inputPin, co
     const size_t minPaddedPinLength = 64;
     Vector<uint8_t> paddedPin;
     paddedPin.reserveInitialCapacity(minPaddedPinLength);
-    paddedPin.append(inputPin.utf8().bytes());
+    paddedPin.append(newPin.bytes());
     for (int i = paddedPin.size(); i < 64; i++)
         paddedPin.append('\0');
 
@@ -366,3 +362,4 @@ Vector<uint8_t> encodeAsCBOR(const SetPinRequest& request)
 } // namespace fido
 
 #endif // ENABLE(WEB_AUTHN)
+

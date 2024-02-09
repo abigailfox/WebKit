@@ -78,7 +78,7 @@ TEST(CtapPinTest, TestSetPinRequest)
     ASSERT_FALSE(keyPairResult.hasException());
     auto keyPair = keyPairResult.releaseReturnValue();
 
-    String pin = "1234"_s;
+    CString pin = "1234";
 
     auto request = SetPinRequest::tryCreate(pin, downcast<CryptoKeyEC>(*keyPair.publicKey));
     EXPECT_TRUE(request);
@@ -150,11 +150,11 @@ TEST(CtapPinTest, TestSetPinRequest)
     EXPECT_EQ(newPinEnc.size(), 64u);
     EXPECT_EQ(memcmp(newPinEnc.data(), expectedNewPinEnc, newPinEnc.size()), 0);
 
-    String pin2 = "123"_s;
+    CString pin2 = "123";
     auto request2 = SetPinRequest::tryCreate(pin2, downcast<CryptoKeyEC>(*keyPair.publicKey));
     EXPECT_FALSE(request2);
 
-    String pin3 = "01234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950"_s;
+    CString pin3 = "01234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950";
     auto request3 = SetPinRequest::tryCreate(pin3, downcast<CryptoKeyEC>(*keyPair.publicKey));
     EXPECT_FALSE(request3);
 }
@@ -394,3 +394,4 @@ TEST(CtapPinTest, TestPinAuth)
 } // namespace TestWebKitAPI
 
 #endif // ENABLE(WEB_AUTHN)
+

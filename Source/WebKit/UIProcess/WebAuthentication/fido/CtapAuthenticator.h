@@ -32,6 +32,13 @@
 
 namespace fido {
 namespace pin {
+
+enum class PinRequestType : uint8_t {
+    kSetPin = 1,
+    kGetPinToken = 2,
+};
+
+class SetPinRequest;
 class TokenRequest;
 }
 }
@@ -63,6 +70,8 @@ private:
     void getRetries();
     void continueGetKeyAgreementAfterGetRetries(Vector<uint8_t>&&);
     void continueRequestPinAfterGetKeyAgreement(Vector<uint8_t>&&, uint64_t retries);
+    void continueSetPinAfterRequestPin(const String& pin, const WebCore::CryptoKeyEC&);
+    void continueRequestAfterSetPin(Vector<uint8_t>&&, const fido::pin::SetPinRequest&);
     void continueGetPinTokenAfterRequestPin(const String& pin, const WebCore::CryptoKeyEC&);
     void continueRequestAfterGetPinToken(Vector<uint8_t>&&, const fido::pin::TokenRequest&);
     bool tryRestartPin(const fido::CtapDeviceResponseCode&);
@@ -72,6 +81,7 @@ private:
     Vector<WebCore::AuthenticatorTransport> transports() const;
 
     fido::AuthenticatorGetInfoResponse m_info;
+    fido::pin::PinRequestType m_requestType = fido::pin::PinRequestType::kGetPinToken;
     bool m_isDowngraded { false };
     bool m_isKeyStoreFull { false };
     size_t m_remainingAssertionResponses { 0 };
@@ -82,3 +92,4 @@ private:
 } // namespace WebKit
 
 #endif // ENABLE(WEB_AUTHN)
+
