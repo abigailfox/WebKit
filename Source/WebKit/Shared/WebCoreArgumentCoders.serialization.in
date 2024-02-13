@@ -1496,11 +1496,15 @@ struct WebCore::AuthenticatorResponseData {
     std::optional<bool> read;
     std::optional<WebCore::BufferSource> write;
 }
+[Nested] struct WebCore::AuthenticationExtensionsClientInputs::HMACGetSecretInput {
+}
 
 [LegacyPopulateFromEmptyConstructor] struct WebCore::AuthenticationExtensionsClientInputs {
     String appid;
     [NotSerialized] bool credProps;
     std::optional<WebCore::AuthenticationExtensionsClientInputs::LargeBlobInputs> largeBlob;
+    bool hmacCreateSecret;
+    HMACGetSecretInput hmacGetSecret;
 }
 
 [Nested] struct WebCore::AuthenticationExtensionsClientOutputs::CredentialPropertiesOutput {
