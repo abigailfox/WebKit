@@ -91,10 +91,12 @@ CtapAuthenticator::CtapAuthenticator(std::unique_ptr<CtapDriver>&& driver, Authe
     : FidoAuthenticator(WTFMove(driver))
     , m_info(WTFMove(info))
 {
+    WTFLogAlways("ABIGAIL: make ctap");
 }
 
 void CtapAuthenticator::makeCredential()
 {
+    WTFLogAlways("ABIGAIL: make credential");
     ASSERT(!m_isDowngraded);
     Vector<uint8_t> cborCmd;
     auto& options = std::get<PublicKeyCredentialCreationOptions>(requestData().options);
@@ -115,7 +117,9 @@ void CtapAuthenticator::makeCredential()
         cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions, PinParameters { pin::kProtocolVersion, m_pinAuth });
     else if (m_info.options().clientPinAvailability() == AuthenticatorSupportedOptions::ClientPinAvailability::kSupportedButPinNotSet) {
         //TODO: pin not set, do something
+        WTFLogAlways("ABIGAIL: no pin!");
         m_requestType = fido::pin::PinRequestType::kSetPin;
+        cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions);
     }
     else
         cborCmd = encodeMakeCredentialRequestAsCBOR(requestData().hash, options, internalUVAvailability, residentKeyAvailability, authenticatorSupportedExtensions);
@@ -123,6 +127,7 @@ void CtapAuthenticator::makeCredential()
         ASSERT(RunLoop::isMain());
         if (!weakThis)
             return;
+        WTFLogAlways("ABIGAIL: transacting");
         weakThis->continueMakeCredentialAfterResponseReceived(WTFMove(data));
     });
 }
@@ -178,6 +183,7 @@ void CtapAuthenticator::continueMakeCredentialAfterResponseReceived(Vector<uint8
 
 void CtapAuthenticator::getAssertion()
 {
+    WTFLogAlways("ABIGAIL: get assertion");
     ASSERT(!m_isDowngraded);
     Vector<uint8_t> cborCmd;
     auto& options = std::get<PublicKeyCredentialRequestOptions>(requestData().options);
@@ -284,6 +290,7 @@ void CtapAuthenticator::continueGetNextAssertionAfterResponseReceived(Vector<uin
 
 void CtapAuthenticator::getRetries()
 {
+    WTFLogAlways("ABIGAIL: getRetries");
     auto cborCmd = encodeAsCBOR(pin::RetriesRequest { });
     driver().transact(WTFMove(cborCmd), [weakThis = WeakPtr { *this }](Vector<uint8_t>&& data) {
         ASSERT(RunLoop::isMain());
@@ -295,6 +302,7 @@ void CtapAuthenticator::getRetries()
 
 void CtapAuthenticator::continueGetKeyAgreementAfterGetRetries(Vector<uint8_t>&& data)
 {
+    WTFLogAlways("ABIGAIL: continueGetKey");
     auto retries = pin::RetriesResponse::parse(data);
     if (!retries) {
         auto error = getResponseCode(data);
@@ -457,6 +465,7 @@ void CtapAuthenticator::continueRequestAfterGetPinToken(Vector<uint8_t>&& data, 
 
 bool CtapAuthenticator::tryRestartPin(const CtapDeviceResponseCode& error)
 {
+    WTFLogAlways("ABIGAIL: tryRestartPin");
     switch (error) {
     case CtapDeviceResponseCode::kCtap2ErrPinAuthInvalid:
     case CtapDeviceResponseCode::kCtap2ErrPinInvalid:
@@ -495,13 +504,6 @@ Vector<AuthenticatorTransport> CtapAuthenticator::transports() const
     
     if (auto& infoTransports = m_info.transports())
         return *infoTransports;
-    return Vector { driver().transport() };
-}
-
-} // namespace WebKit
-
-#endif // ENABLE(WEB_AUTHN)
-
     return Vector { driver().transport() };
 }
 
