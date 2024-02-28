@@ -50,6 +50,7 @@ ComputedStylePropertyMapReadOnly::ComputedStylePropertyMapReadOnly(Element& elem
 
 RefPtr<CSSValue> ComputedStylePropertyMapReadOnly::propertyValue(CSSPropertyID propertyID) const
 {
+    WTFLogAlways("ABIGAIL: property value CSSID %hu", propertyID);
     return ComputedStyleExtractor(m_element.ptr()).propertyValue(propertyID, ComputedStyleExtractor::UpdateLayout::Yes, ComputedStyleExtractor::PropertyValueType::Computed);
 }
 

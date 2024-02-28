@@ -125,10 +125,13 @@ static Ref<MutableStyleProperties> copyPropertiesFromComputedStyle(ComputedStyle
 {
     switch (propertiesToInclude) {
     case EditingStyle::OnlyEditingInheritableProperties:
+        //WTFLogAlways("ABIGAIL: only editing inheritable properties");
         return copyEditingProperties(&computedStyle, OnlyInheritableEditingProperties);
     case EditingStyle::EditingPropertiesInEffect:
+        //WTFLogAlways("ABIGAIL: editing properties in effect");
         return copyEditingProperties(&computedStyle, AllEditingProperties);
     case EditingStyle::AllProperties:
+        //WTFLogAlways("ABIGAIL: all properties");
         break;
     }
     return computedStyle.copyProperties();
@@ -532,16 +535,24 @@ static int textAlignResolvingStartAndEnd(T& style)
 
 void EditingStyle::init(Node* node, PropertiesToInclude propertiesToInclude)
 {
+    WTFLogAlways("ABIGAIL: init");
     if (auto* tabSpan = parentTabSpanNode(node))
         node = tabSpan->parentNode();
     else if (tabSpanNode(node))
         node = node->parentNode();
 
     ComputedStyleExtractor computedStyleAtPosition(node);
+//    WTFLogAlways("ABIGAIL: computed");
+//    WTFLogAlways("ABIGAIL: has vertical align %d", computedStyleAtPosition.hasProperty(CSSPropertyID::CSSPropertyVerticalAlign)); //<- this will also crash
     // FIXME: It's strange to not set background-color and text-decoration when propertiesToInclude is EditingPropertiesInEffect.
     // However editing/selection/contains-boundaries.html fails without this ternary.
     m_mutableStyle = copyPropertiesFromComputedStyle(computedStyleAtPosition,
-        propertiesToInclude == EditingPropertiesInEffect ? OnlyEditingInheritableProperties : propertiesToInclude);
+        propertiesToInclude == EditingPropertiesInEffect ? OnlyEditingInheritableProperties : propertiesToInclude); //<- crashes here
+
+    //ABIGAIL: debug
+    int index = m_mutableStyle->findPropertyIndex(CSSPropertyID::CSSPropertyVerticalAlign);
+    String property = m_mutableStyle->propertyAt(index).cssName();
+    WTFLogAlways("ABIGAIL: init css component %s", property.utf8().data());
 
     if (propertiesToInclude == EditingPropertiesInEffect) {
         if (RefPtr<CSSValue> value = backgroundColorInEffect(node))

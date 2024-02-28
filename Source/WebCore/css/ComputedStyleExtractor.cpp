@@ -89,6 +89,9 @@
 #include "ViewTimeline.h"
 #include "WebAnimationUtilities.h"
 
+//debug
+#include "NodeName.h"
+
 namespace WebCore {
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(ComputedStyleExtractor);
 
@@ -1906,6 +1909,8 @@ ComputedStyleExtractor::ComputedStyleExtractor(Element* element, bool allowVisit
     , m_pseudoElementIdentifier(pseudoElementIdentifier)
     , m_allowVisitedStyle(allowVisitedStyle)
 {
+    WTFLogAlways("ABIGAIL: element html body: %d", (m_element->elementName() == WebCore::NodeName::HTML_body));
+    WTFLogAlways("ABIGAIL: style text %s", m_element->elementData()->inlineStyle()->asText().utf8().data());
 }
 
 ComputedStyleExtractor::ComputedStyleExtractor(Element* element, bool allowVisitedStyle)
@@ -2819,6 +2824,7 @@ static inline const RenderStyle* computeRenderStyleForProperty(Element& element,
         renderer = element.renderer();
 
     if (renderer && renderer->isComposited() && CSSPropertyAnimation::animationOfPropertyIsAccelerated(propertyID, element.document().settings())) {
+        WTFLogAlways("ABIGAIL: animation?");
         ownedStyle = renderer->animatedStyle();
         if (pseudoElementIdentifier) {
             // FIXME: This cached pseudo style will only exist if the animation has been run at least once.
@@ -3196,7 +3202,7 @@ RefPtr<CSSValue> ComputedStyleExtractor::propertyValue(CSSPropertyID propertyID,
         }
 
         style = computeRenderStyleForProperty(*styledElement, m_pseudoElementIdentifier, propertyID, ownedStyle, styledRenderer());
-        WTFLogAlways("ABIGAIL: property value length type: %hhu", style->verticalAlignLength().type());
+        //WTFLogAlways("ABIGAIL: property value length type: %hhu", style->verticalAlignLength().type());
 
         forcedLayout = [&] {
             // FIXME: Some of these cases could be narrowed down or optimized better.
@@ -3232,7 +3238,13 @@ RefPtr<CSSValue> ComputedStyleExtractor::propertyValue(CSSPropertyID propertyID,
 
     if (!style)
         return nullptr;
-
+        
+    if (propertyID == 285) {
+        WTFLogAlways("ABIGAIL: propertyValue length type: %hhu", style->verticalAlignLength().type());
+        bool layoutUpdate = (updateLayout == UpdateLayout::Yes);
+        WTFLogAlways("ABIGAIL: update layout %d", layoutUpdate);
+    }
+        
     return valueForPropertyInStyle(*style, propertyID, valueType == PropertyValueType::Resolved ? styledRenderer() : nullptr, valueType);
 }
 

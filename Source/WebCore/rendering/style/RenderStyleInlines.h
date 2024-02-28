@@ -720,7 +720,7 @@ inline UserModify RenderStyle::userModify() const { return static_cast<UserModif
 inline UserSelect RenderStyle::userSelect() const { return static_cast<UserSelect>(m_rareInheritedData->userSelect); }
 inline VerticalAlign RenderStyle::verticalAlign() const { return m_nonInheritedData->boxData->verticalAlign(); }
 inline const Length& RenderStyle::verticalAlignLength() const { 
-    WTFLogAlways("ABIGAIL: render style .h verticalalignlength %hhu", m_nonInheritedData->boxData->verticalAlignLength().type());
+    //WTFLogAlways("ABIGAIL: render style .h verticalalignlength %hhu", m_nonInheritedData->boxData->verticalAlignLength().type());
     return m_nonInheritedData->boxData->verticalAlignLength(); }
 inline std::optional<Style::ScopedName> RenderStyle::viewTransitionName() const { return m_nonInheritedData->rareData->viewTransitionName; }
 inline const StyleColor& RenderStyle::visitedLinkBackgroundColor() const { return m_nonInheritedData->miscData->visitedLinkColor->background; }
