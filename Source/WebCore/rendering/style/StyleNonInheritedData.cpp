@@ -54,6 +54,7 @@ StyleNonInheritedData::StyleNonInheritedData(const StyleNonInheritedData& other)
     , miscData(other.miscData)
     , rareData(other.rareData)
 {
+    WTFLogAlways("ABIGAIL: snid ndfctor %hhu", boxData->verticalAlignLength().type());
 }
 
 Ref<StyleNonInheritedData> StyleNonInheritedData::create()

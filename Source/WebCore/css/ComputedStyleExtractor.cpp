@@ -3196,6 +3196,7 @@ RefPtr<CSSValue> ComputedStyleExtractor::propertyValue(CSSPropertyID propertyID,
         }
 
         style = computeRenderStyleForProperty(*styledElement, m_pseudoElementIdentifier, propertyID, ownedStyle, styledRenderer());
+        WTFLogAlways("ABIGAIL: property value length type: %hhu", style->verticalAlignLength().type());
 
         forcedLayout = [&] {
             // FIXME: Some of these cases could be narrowed down or optimized better.
@@ -4042,6 +4043,7 @@ RefPtr<CSSValue> ComputedStyleExtractor::valueForPropertyInStyle(const RenderSty
         case VerticalAlign::BaselineMiddle:
             return CSSPrimitiveValue::create(CSSValueWebkitBaselineMiddle);
         case VerticalAlign::Length:
+            WTFLogAlways("ABIGAIL: VerticalAlign::Length %hhu", style.verticalAlignLength().type());
             return CSSPrimitiveValue::create(style.verticalAlignLength(), style);
         }
         ASSERT_NOT_REACHED();

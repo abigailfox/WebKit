@@ -719,7 +719,9 @@ inline UserDrag RenderStyle::userDrag() const { return static_cast<UserDrag>(m_n
 inline UserModify RenderStyle::userModify() const { return static_cast<UserModify>(m_rareInheritedData->userModify); }
 inline UserSelect RenderStyle::userSelect() const { return static_cast<UserSelect>(m_rareInheritedData->userSelect); }
 inline VerticalAlign RenderStyle::verticalAlign() const { return m_nonInheritedData->boxData->verticalAlign(); }
-inline const Length& RenderStyle::verticalAlignLength() const { return m_nonInheritedData->boxData->verticalAlignLength(); }
+inline const Length& RenderStyle::verticalAlignLength() const { 
+    WTFLogAlways("ABIGAIL: render style .h verticalalignlength %hhu", m_nonInheritedData->boxData->verticalAlignLength().type());
+    return m_nonInheritedData->boxData->verticalAlignLength(); }
 inline std::optional<Style::ScopedName> RenderStyle::viewTransitionName() const { return m_nonInheritedData->rareData->viewTransitionName; }
 inline const StyleColor& RenderStyle::visitedLinkBackgroundColor() const { return m_nonInheritedData->miscData->visitedLinkColor->background; }
 inline const StyleColor& RenderStyle::visitedLinkBorderBottomColor() const { return m_nonInheritedData->miscData->visitedLinkColor->borderBottom; }

@@ -561,6 +561,7 @@ Ref<CSSPrimitiveValue> CSSPrimitiveValue::create(const Length& length, const Ren
         return create(CSSCalcValue::create(length.calculationValue(), style).releaseNonNull());
     case LengthType::Relative:
     case LengthType::Undefined:
+            WTFLogAlways("ABIGAIL: length type %hhu", length.type());
         break;
     }
     RELEASE_ASSERT_NOT_REACHED();

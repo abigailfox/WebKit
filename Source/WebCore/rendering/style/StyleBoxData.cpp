@@ -69,6 +69,8 @@ inline StyleBoxData::StyleBoxData(const StyleBoxData& o)
     , m_boxDecorationBreak(o.m_boxDecorationBreak)
     , m_verticalAlign(o.m_verticalAlign)
 {
+    //WTFLogAlways("ABIGAIL: StyleBoxData length type incoming: %hhu", o.m_verticalAlignLength.type());
+    WTFLogAlways("ABIGAIL: StyleBoxData length type outgoing: %hhu", m_verticalAlignLength.type());
 }
 
 Ref<StyleBoxData> StyleBoxData::copy() const
