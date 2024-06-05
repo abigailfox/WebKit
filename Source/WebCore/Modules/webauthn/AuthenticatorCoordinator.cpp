@@ -102,6 +102,8 @@ void AuthenticatorCoordinator::create(const Document& document, CredentialCreati
 {
     using namespace AuthenticatorCoordinatorInternal;
 
+    WTFLogAlways("ABIGAIL: create");
+
     const auto& callerOrigin = document.securityOrigin();
     auto* frame = document.frame();
     const auto& options = createOptions.publicKey.value();
@@ -225,6 +227,8 @@ void AuthenticatorCoordinator::create(const Document& document, CredentialCreati
 void AuthenticatorCoordinator::discoverFromExternalSource(const Document& document, CredentialRequestOptions&& requestOptions, const ScopeAndCrossOriginParent& scopeAndCrossOriginParent, CredentialPromise&& promise)
 {
     using namespace AuthenticatorCoordinatorInternal;
+
+    WTFLogAlways("ABIGAIL: discoverFromExternalSource");
 
     auto& callerOrigin = document.securityOrigin();
     RefPtr frame = document.frame();

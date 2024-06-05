@@ -56,6 +56,7 @@ AuthenticatorGetInfoResponse::AuthenticatorGetInfoResponse(StdSet<ProtocolVersio
 
 AuthenticatorGetInfoResponse& AuthenticatorGetInfoResponse::setMaxMsgSize(uint32_t maxMsgSize)
 {
+    WTFLogAlways("ABIGAIL: setting maxMsgSize");
     m_maxMsgSize = maxMsgSize;
     return *this;
 }
@@ -93,6 +94,8 @@ AuthenticatorGetInfoResponse& AuthenticatorGetInfoResponse::setRemainingDiscover
 Vector<uint8_t> encodeAsCBOR(const AuthenticatorGetInfoResponse& response)
 {
     using namespace cbor;
+
+    WTFLogAlways("ABIGAIL: encoding");
 
     CBORValue::MapValue deviceInfoMap;
 

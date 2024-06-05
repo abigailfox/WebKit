@@ -68,6 +68,7 @@ std::optional<cbor::CBORValue> decodeResponseMap(const Vector<uint8_t>& inBuffer
 
 CtapDeviceResponseCode getResponseCode(const Vector<uint8_t>& buffer)
 {
+    WTFLogAlways("ABIGAIL: getResponseCode");
     if (buffer.isEmpty())
         return CtapDeviceResponseCode::kCtap2ErrInvalidCBOR;
 
