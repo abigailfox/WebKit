@@ -36,6 +36,7 @@ namespace WebCore {
 
 RefPtr<AuthenticatorResponse> AuthenticatorResponse::tryCreate(AuthenticatorResponseData&& data, AuthenticatorAttachment attachment)
 {
+    WTFLogAlways("ABIGAIL: tryCreate");
     if (!data.rawId)
         return nullptr;
 

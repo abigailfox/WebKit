@@ -97,6 +97,8 @@ static Vector<uint8_t> getCredentialId(const Vector<uint8_t>& authenticatorData)
 // checks for correct encoding format.
 RefPtr<AuthenticatorAttestationResponse> readCTAPMakeCredentialResponse(const Vector<uint8_t>& inBuffer, WebCore::AuthenticatorAttachment attachment, Vector<AuthenticatorTransport>&& transports, const AttestationConveyancePreference& attestation)
 {
+    WTFLogAlways("ABIGAIL: readCTAPMakeCredentialResponse");
+
     auto decodedMap = decodeResponseMap(inBuffer);
     if (!decodedMap)
         return nullptr;
